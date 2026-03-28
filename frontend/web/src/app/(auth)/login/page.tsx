@@ -117,13 +117,10 @@ export default function LoginPage() {
               </p>
               <div className="space-y-1">
                 <p className="text-xs text-text-muted">
-                  <span className="font-medium">Admin:</span>{" "}devam@velora.io / devam123
+                  <span className="font-medium">Admin:</span>{" "}admin@velora-demo.com / admin123
                 </p>
                 <p className="text-xs text-text-muted">
-                  <span className="font-medium">Manager:</span>{" "}manager@velora.io / manager123
-                </p>
-                <p className="text-xs text-text-muted">
-                  <span className="font-medium">Viewer:</span>{" "}viewer@velora.io / viewer123
+                  <span className="font-medium">Analyst:</span>{" "}analyst@velora-demo.com / analyst123
                 </p>
               </div>
             </div>

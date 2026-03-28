@@ -120,6 +120,36 @@ class FrameworkService:
 
         return self._build_tree(clauses)
 
+    # -- Bulk Clauses (Flat) ----------------------------------------
+
+    async def get_clauses_flat(
+        self, framework_id: uuid.UUID
+    ) -> List[ClauseResponse]:
+        """Get all clauses as flat list for evidence mapping."""
+        query = (
+            select(FrameworkClause)
+            .where(
+                FrameworkClause.framework_id
+                == framework_id
+            )
+            .order_by(FrameworkClause.order_index.asc())
+        )
+        result = await self._session.execute(query)
+        clauses = result.scalars().all()
+        return [
+            ClauseResponse(
+                id=c.id,
+                framework_id=c.framework_id,
+                clause_ref=c.clause_ref,
+                title=c.title,
+                description=c.description,
+                level=c.level,
+                parent_id=c.parent_id,
+                order_index=c.order_index,
+            )
+            for c in clauses
+        ]
+
     # -- Clause Mappings -------------------------------------------
 
     async def get_clause_mappings(

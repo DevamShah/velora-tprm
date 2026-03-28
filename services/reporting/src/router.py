@@ -215,6 +215,7 @@ async def update_dashboard_config(
     ],
 ) -> DashboardConfigResponse:
     """Update dashboard configuration."""
+    _ = config_id  # TODO: use config_id to target specific config
     service = ReportsService(session)
     return await service.update_dashboard_config(
         current_user["tenant_id"],

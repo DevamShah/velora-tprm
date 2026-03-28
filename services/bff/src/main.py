@@ -31,6 +31,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 from .aggregator import dashboard_data, vendor_full
 from .config import get_settings
+from .portal import portal_router
 from .proxy import proxy_request
 from .session import SessionManager
 
@@ -122,6 +123,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # ── Portal routes (vendor-facing) ────────────────────────────────
+    app.include_router(portal_router)
 
     # ── Health ────────────────────────────────────────────────────────
 
@@ -374,8 +378,30 @@ def create_app() -> FastAPI:
         """
         Proxy all /api/v1/* requests to the appropriate upstream
         microservice, injecting the JWT from the server-side session.
+
+        Falls back to forwarding the Authorization header directly
+        when no session cookie is present (direct JWT mode).
         """
-        access_token = await _require_session_token(velora_session)
+        # Auth endpoints don't need a token — pass through directly
+        request_path = request.url.path
+        auth_passthrough = (
+            request_path.startswith("/api/v1/auth/login")
+            or request_path.startswith("/api/v1/auth/refresh")
+        )
+
+        if auth_passthrough:
+            return await proxy_request(request, "")
+        # Try session-based auth first, fall back to direct JWT
+        auth_header = request.headers.get("authorization", "")
+        if velora_session:
+            access_token = await _require_session_token(velora_session)
+        elif auth_header.startswith("Bearer "):
+            access_token = auth_header[7:]
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="No session cookie or Authorization header",
+            )
         return await proxy_request(request, access_token)
 
     # ── Error handlers ────────────────────────────────────────────────

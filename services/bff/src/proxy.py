@@ -75,7 +75,8 @@ async def proxy_request(
     for key, value in request.headers.items():
         if key.lower() not in _HOP_BY_HOP:
             headers[key] = value
-    headers["Authorization"] = f"Bearer {access_token}"
+    if access_token:
+        headers["Authorization"] = f"Bearer {access_token}"
 
     # Read request body (empty for GET/DELETE)
     body = await request.body()

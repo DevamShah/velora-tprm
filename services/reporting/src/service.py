@@ -275,7 +275,7 @@ class ReportsService:
         self, tenant_id: uuid.UUID
     ) -> dict:
         """Count assessments total and by status."""
-        from src.cross_deps.assessment_models import (  # TODO: Replace with API call in Phase 2
+        from .cross_deps.assessment_models import (  # TODO: Replace with API call in Phase 2
             Assessment,
         )
 
@@ -310,7 +310,7 @@ class ReportsService:
         self, tenant_id: uuid.UUID
     ) -> dict:
         """Count open findings total and by severity."""
-        from src.cross_deps.finding_models import Finding  # TODO: Replace with API call in Phase 2
+        from .cross_deps.finding_models import Finding  # TODO: Replace with API call in Phase 2
 
         result = await self._session.execute(
             select(

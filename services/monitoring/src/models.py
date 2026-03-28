@@ -90,6 +90,12 @@ class MonitoringSignal(TenantBase):
     raw_data: Mapped[Optional[Dict]] = mapped_column(
         JSONB, nullable=True
     )
+    signal_data: Mapped[Optional[Dict]] = mapped_column(
+        JSONB, nullable=True
+    )
+    priority: Mapped[Optional[str]] = mapped_column(
+        String(20), nullable=True
+    )
     dedup_key: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True
     )
@@ -120,6 +126,12 @@ class Alert(TenantBase):
     )
     description: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True
+    )
+    signal_type: Mapped[Optional[str]] = mapped_column(
+        String(100), nullable=True
+    )
+    signal_data: Mapped[Optional[Dict]] = mapped_column(
+        JSONB, nullable=True
     )
     signal_ids: Mapped[Optional[List[uuid.UUID]]] = (
         mapped_column(

@@ -160,7 +160,6 @@ function GeneralSettings() {
 
 function ScoringSettings() {
   const { models, isLoading, error } = useScoringModels();
-  const defaultModel = models.find((m) => m.is_default) || models[0];
 
   if (isLoading) {
     return (
@@ -179,6 +178,8 @@ function ScoringSettings() {
       </div>
     );
   }
+
+  const defaultModel = (models || []).find((m) => m.is_default) || (models || [])[0];
 
   if (!defaultModel) {
     return (

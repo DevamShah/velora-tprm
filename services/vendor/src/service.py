@@ -11,7 +11,7 @@ import csv
 import io
 import uuid
 from datetime import datetime, timezone
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from typing import List, Optional
 
 from sqlalchemy import func, or_, select
@@ -24,7 +24,6 @@ from velora_common.security import FieldEncryptor
 from .models import (
     Vendor,
     VendorContact,
-    VendorEnrichment,
 )
 from .schemas import (
     BulkImportError,

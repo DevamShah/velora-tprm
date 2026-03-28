@@ -1,0 +1,106 @@
+{
+  "project": "velora-tprm",
+  "sprint": 1,
+  "goal": "Replace _mock_answer() with actual Anthropic Claude API calls. Every AI response comes from Claude with proper prompt engineering, token tracking, and fallback.",
+  "route": "ralph",
+  "prerequisite": "ANTHROPIC_API_KEY must exist in .env",
+  "secure_code_mandate": "ACTIVE",
+  "stories": [
+    {
+      "id": "S1-1",
+      "ticket": "TSK-01001",
+      "title": "Add Anthropic SDK dependency to AI service",
+      "description": "Add `anthropic>=0.40.0` to services/ai/pyproject.toml dependencies section. Verify pip install succeeds.",
+      "acceptance_criteria": [
+        "anthropic>=0.40.0 listed in [project.dependencies] in pyproject.toml",
+        "pip install -e . succeeds without errors in the ai service container",
+        "python -c 'import anthropic' executes without ImportError"
+      ],
+      "files": ["services/ai/pyproject.toml"],
+      "assigned_to": "nirmitya",
+      "priority": 1,
+      "dependencies": [],
+      "passes": false
+    },
+    {
+      "id": "S1-2",
+      "ticket": "TSK-01002",
+      "title": "Create async Claude client wrapper with retry and rate limiting",
+      "description": "Build a reusable async Claude client at services/ai/src/claude_client.py. Must handle: initialization from env var, message sending with structured JSON output, exponential backoff on rate limits (429), timeout handling (30s default), token usage counting per call, and per-tenant budget caps.",
+      "acceptance_criteria": [
+        "ClaudeClient class initializes with ANTHROPIC_API_KEY from environment",
+        "send_message() returns structured response with content, token_usage (input_tokens, output_tokens), and model fields",
+        "Rate limit (429) responses trigger exponential backoff: 1s, 2s, 4s, max 3 retries",
+        "Timeout set to 30s by default, configurable",
+        "Token usage logged per call with tenant_id for cost tracking",
+        "APIError, RateLimitError, APITimeoutError caught and handled with appropriate error responses",
+        "Client is async (uses anthropic.AsyncAnthropic)"
+      ],
+      "files": ["services/ai/src/claude_client.py"],
+      "assigned_to": "nirmitya",
+      "priority": 2,
+      "dependencies": ["S1-1"],
+      "passes": false
+    },
+    {
+      "id": "S1-3",
+      "ticket": "TSK-01003",
+      "title": "Build TPRM questionnaire prompt templates",
+      "description": "Create domain-specific prompt templates at services/ai/src/prompts.py for TPRM questionnaire answering. System prompt enforces structured JSON output. Includes vendor context injection (name, domain, tier, certifications), evidence context (parsed extractions), and question-specific prompting. Confidence scoring based on evidence availability.",
+      "acceptance_criteria": [
+        "QUESTIONNAIRE_SYSTEM_PROMPT defined with role, output format (JSON), and TPRM domain context",
+        "build_autofill_prompt(vendor_context, evidence_context, questions) returns formatted user message",
+        "Prompt includes vendor profile fields: name, domain, tier, certifications, data_classification",
+        "Prompt includes evidence summary when available",
+        "Output schema enforces: {question_id, answer, confidence (0.0-1.0), reasoning, evidence_citations[]}",
+        "Confidence scoring rules documented: 0.9+ with evidence, 0.6-0.8 from public info, 0.3-0.5 inference only",
+        "Batch prompt template handles up to 10 questions per API call"
+      ],
+      "files": ["services/ai/src/prompts.py"],
+      "assigned_to": "nirmitya",
+      "priority": 3,
+      "dependencies": ["S1-2"],
+      "passes": false
+    },
+    {
+      "id": "S1-4",
+      "ticket": "TSK-01004",
+      "title": "Replace _mock_answer() with real Claude calls in AIService",
+      "description": "Refactor AIService.auto_fill_assessment() in services/ai/src/service.py to use the ClaudeClient and prompt templates. Remove _mock_answer(). Batch questions into groups of 10 for API efficiency. Track total token usage in DB. Implement fallback: if Claude API fails after retries, log error and mark response as low-confidence rather than failing the entire batch.",
+      "acceptance_criteria": [
+        "_mock_answer() function removed from service.py",
+        "auto_fill_assessment() calls ClaudeClient.send_message() with built prompts",
+        "Questions batched into groups of 10 for API calls",
+        "Each response includes: answer text, confidence score, reasoning, evidence citations",
+        "Token usage persisted to auto_fill_usage table with tenant_id, assessment_id, tokens_in, tokens_out",
+        "If Claude API fails: log error, return response with confidence=0.1 and note='AI service unavailable, manual review required'",
+        "Existing /ai/auto-fill endpoint continues to work with same request/response schema",
+        "Review queue items generated for confidence < 0.7"
+      ],
+      "files": ["services/ai/src/service.py", "services/ai/src/schemas.py"],
+      "assigned_to": "nirmitya",
+      "priority": 4,
+      "dependencies": ["S1-3"],
+      "passes": false
+    },
+    {
+      "id": "S1-5",
+      "ticket": "TSK-01005",
+      "title": "Integration tests for Claude API auto-fill",
+      "description": "Create comprehensive tests at services/ai/tests/test_claude_integration.py. Unit tests mock the Anthropic client. Integration tests use real API (gated by ANTHROPIC_API_KEY env var). Test: successful fill, API timeout fallback, rate limit handling, token tracking accuracy, batch processing, low-confidence fallback, review queue generation.",
+      "acceptance_criteria": [
+        "At least 8 test cases covering: success, timeout, rate limit, token tracking, batching, fallback, confidence thresholds, review queue",
+        "Unit tests mock anthropic.AsyncAnthropic and run without API key",
+        "Integration tests (marked @pytest.mark.integration) use real API when key available",
+        "All unit tests pass: pytest services/ai/tests/ -v",
+        "Test coverage for claude_client.py, prompts.py, and modified service.py lines >= 80%",
+        "conftest.py updated with Claude client fixtures"
+      ],
+      "files": ["services/ai/tests/test_claude_integration.py", "services/ai/tests/conftest.py"],
+      "assigned_to": "nirmitya",
+      "priority": 5,
+      "dependencies": ["S1-4"],
+      "passes": false
+    }
+  ]
+}

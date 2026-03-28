@@ -35,13 +35,19 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "depcheck": "^1.4.7",
     "eslint": "^9",
     "eslint-config-next": "15.5.14",
+    "jscpd": "^4.0.8",
+    "lighthouse": "^13.0.3",
+    "madge": "^8.0.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }

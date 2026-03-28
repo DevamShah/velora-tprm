@@ -1,20 +1,37 @@
 """
 Evidence business logic — upload, process, map, verify.
 
-All DB queries run inside the caller-provided async session.
+v2.1: Real MinIO storage + Azure Document Intelligence parsing.
 """
 
 from __future__ import annotations
 
+import os
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
+
+import httpx
+
+_ALLOWED_MIME_TYPES = {
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "text/csv",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+}
+_MAX_DOWNLOAD_SIZE = 100 * 1024 * 1024  # 100MB
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from velora_common.logging import get_logger
+from .doc_parser import DocumentParser
+from .extractors import get_extractor
+from .mapping_engine import MappingEngine
 from .models import (
     Evidence,
     EvidenceControlMapping,
@@ -30,8 +47,19 @@ from .schemas import (
     EvidenceUploadRequest,
     EvidenceUploadResponse,
 )
+from .storage import StorageClient
 
 logger = get_logger(__name__)
+
+
+def _get_storage() -> StorageClient:
+    """Get MinIO storage client."""
+    return StorageClient()
+
+
+def _get_parser() -> DocumentParser:
+    """Get Azure Document Intelligence parser."""
+    return DocumentParser()
 
 
 class EvidenceService:
@@ -48,10 +76,25 @@ class EvidenceService:
         data: EvidenceUploadRequest,
         uploaded_by: uuid.UUID,
     ) -> EvidenceUploadResponse:
-        """Create evidence record and return mock presigned URL."""
+        """Create evidence record and return real presigned URL."""
+        # Validate mime type against allowlist
+        if data.mime_type not in _ALLOWED_MIME_TYPES:
+            raise ValueError(
+                f"Unsupported file type: {data.mime_type}"
+            )
+
+        # Sanitize filename — strip path components and
+        # dangerous characters
+        safe_name = os.path.basename(data.filename)
+        safe_name = re.sub(
+            r'[^\w\-. ]', '_', safe_name
+        )[:255]
+        if not safe_name:
+            safe_name = "unnamed_document"
+
         s3_key = (
             f"evidence/{tenant_id}/{data.vendor_id}"
-            f"/{uuid.uuid4()}/{data.filename}"
+            f"/{uuid.uuid4()}/{safe_name}"
         )
         evidence = Evidence(
             tenant_id=tenant_id,
@@ -71,10 +114,19 @@ class EvidenceService:
             "evidence_uploaded",
             evidence_id=str(evidence.id),
         )
-        upload_url = (
-            f"https://s3.mock.velora.io/{s3_key}"
-            f"?X-Amz-SignedHeaders=host"
-        )
+
+        try:
+            storage = _get_storage()
+            upload_url = storage.get_presigned_upload_url(
+                s3_key
+            )
+        except Exception:
+            logger.warning(
+                "minio_presign_failed",
+                s3_key=s3_key,
+            )
+            upload_url = f"minio://{s3_key}"
+
         return EvidenceUploadResponse(
             evidence_id=evidence.id,
             upload_url=upload_url,
@@ -150,14 +202,14 @@ class EvidenceService:
             page_size=filters.page_size,
         )
 
-    # -- Process (mock AI) ------------------------------------------
+    # -- Process (Real Azure Parsing) --------------------------------
 
     async def process_evidence(
         self,
         tenant_id: uuid.UUID,
         evidence_id: uuid.UUID,
     ) -> Optional[EvidenceDetailResponse]:
-        """Mock AI parsing — generate sample extractions."""
+        """Parse evidence via Azure Document Intelligence."""
         ev = await self._get_or_none(
             tenant_id, evidence_id
         )
@@ -167,30 +219,176 @@ class EvidenceService:
         ev.status = "processing"
         await self._session.flush()
 
-        extractions = self._generate_mock_extractions(
-            tenant_id, evidence_id, ev.document_type
-        )
-        for ext in extractions:
-            self._session.add(ext)
+        try:
+            parse_result = await self._download_and_parse(ev)
+            extractions = self._run_extraction(
+                parse_result, ev.document_type,
+                tenant_id, evidence_id,
+            )
+            for ext in extractions:
+                self._session.add(ext)
 
-        ev.status = "parsed"
-        ev.parsed_content = {
-            "pages": 12,
-            "sections": ["scope", "controls", "audit"],
-        }
-        ev.extraction_summary = {
-            "fields_extracted": len(extractions),
-            "avg_confidence": 0.87,
-        }
-        ev.classification_confidence = 0.92
+            self._compute_extraction_summary(
+                ev, parse_result, extractions,
+            )
+
+            if ev.assessment_id and extractions:
+                try:
+                    await self._auto_map_controls(
+                        tenant_id, evidence_id, extractions,
+                    )
+                except Exception:
+                    logger.warning(
+                        "auto_mapping_failed",
+                        evidence_id=str(evidence_id),
+                    )
+
+        except Exception:
+            logger.exception(
+                "evidence_parse_failed",
+                evidence_id=str(evidence_id),
+            )
+            ev.status = "failed"
+
         await self._session.flush()
 
         logger.info(
             "evidence_processed",
             evidence_id=str(evidence_id),
+            status=ev.status,
         )
         return await self.get_evidence(
             tenant_id, evidence_id
+        )
+
+    async def _download_and_parse(self, ev: Evidence):
+        """Download file from MinIO and parse via Azure
+        Document Intelligence."""
+        storage = _get_storage()
+        file_bytes = storage.download_bytes(ev.s3_key)
+        if len(file_bytes) > _MAX_DOWNLOAD_SIZE:
+            raise ValueError(
+                f"File exceeds {_MAX_DOWNLOAD_SIZE} bytes"
+            )
+
+        parser = _get_parser()
+        parse_result = await parser.parse_document(
+            file_bytes,
+            content_type=ev.mime_type,
+        )
+        parser.close()
+        return parse_result
+
+    def _run_extraction(
+        self,
+        parse_result,
+        document_type: str,
+        tenant_id: uuid.UUID,
+        evidence_id: uuid.UUID,
+    ) -> List[EvidenceExtraction]:
+        """Run typed or generic extractor on parse result."""
+        extractor = get_extractor(document_type)
+        if extractor:
+            return extractor(
+                parse_result, tenant_id, evidence_id,
+            )
+        return self._generic_extractions(
+            parse_result, tenant_id, evidence_id,
+        )
+
+    @staticmethod
+    def _compute_extraction_summary(
+        ev: Evidence,
+        parse_result,
+        extractions: List[EvidenceExtraction],
+    ) -> None:
+        """Compute and set extraction summary on evidence."""
+        confidences = [
+            e.confidence for e in extractions
+        ]
+        avg_conf = (
+            sum(confidences) / len(confidences)
+            if confidences else 0.0
+        )
+
+        ev.status = "parsed"
+        ev.parsed_content = {
+            "pages": parse_result.total_pages,
+            "tables": len(parse_result.tables),
+            "kvps": len(parse_result.key_value_pairs),
+        }
+        ev.extraction_summary = {
+            "fields_extracted": len(extractions),
+            "avg_confidence": round(avg_conf, 2),
+        }
+        ev.classification_confidence = round(
+            avg_conf, 2
+        )
+
+    @staticmethod
+    def _generic_extractions(
+        parse_result, tenant_id, evidence_id,
+    ) -> List[EvidenceExtraction]:
+        """Fallback extractor for unknown document types."""
+        extractions = []
+        for kvp in parse_result.key_value_pairs[:20]:
+            extractions.append(EvidenceExtraction(
+                tenant_id=tenant_id,
+                evidence_id=evidence_id,
+                field_name=kvp["key"][:255],
+                field_value=kvp["value"][:5000],
+                confidence=0.70,
+                page_number=None,
+            ))
+        return extractions
+
+    async def _auto_map_controls(
+        self,
+        tenant_id: uuid.UUID,
+        evidence_id: uuid.UUID,
+        extractions: List[EvidenceExtraction],
+    ) -> None:
+        """Auto-map evidence to framework controls via HTTP."""
+        # Get framework_id by querying the framework service
+        # for available frameworks (no cross_deps import)
+        framework_svc_url = os.environ.get(
+            "FRAMEWORK_SERVICE_URL",
+            "http://framework-service:8000",
+        )
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(15.0, connect=5.0)
+        ) as client:
+            resp = await client.get(
+                f"{framework_svc_url}/api/v1"
+                f"/internal/frameworks"
+            )
+            if resp.status_code != 200:
+                logger.warning("framework_list_failed")
+                return
+            frameworks = resp.json()
+
+        if not frameworks or not frameworks.get("items"):
+            return
+
+        framework_id = uuid.UUID(
+            frameworks["items"][0]["id"]
+        )
+
+        engine = MappingEngine(
+            tenant_id=tenant_id,
+            framework_id=framework_id,
+        )
+        mappings = await engine.map_evidence(
+            evidence_id, extractions,
+        )
+        for m in mappings:
+            self._session.add(m)
+        await self._session.flush()
+
+        logger.info(
+            "controls_mapped",
+            evidence_id=str(evidence_id),
+            mappings=len(mappings),
         )
 
     # -- Mappings ---------------------------------------------------
@@ -310,50 +508,6 @@ class EvidenceService:
                 Evidence.status == filters.status.value
             )
         return query
-
-    @staticmethod
-    def _generate_mock_extractions(
-        tenant_id: uuid.UUID,
-        evidence_id: uuid.UUID,
-        doc_type: str,
-    ) -> List[EvidenceExtraction]:
-        """Generate mock extractions based on doc type."""
-        field_sets = {
-            "soc2": [
-                ("audit_period", "2025-01-01 to 2025-12-31", 0.95, 1),
-                ("auditor", "Deloitte LLP", 0.98, 1),
-                ("opinion_type", "Unqualified", 0.93, 2),
-                ("scope", "Cloud hosting infrastructure", 0.88, 3),
-            ],
-            "iso_cert": [
-                ("certificate_number", "IS-2025-78432", 0.97, 1),
-                ("standard", "ISO/IEC 27001:2022", 0.99, 1),
-                ("valid_until", "2027-03-15", 0.96, 1),
-                ("certifying_body", "BSI Group", 0.94, 1),
-            ],
-            "pen_test": [
-                ("test_date", "2025-11-15", 0.96, 1),
-                ("tester", "NCC Group", 0.97, 1),
-                ("critical_findings", "0", 0.91, 4),
-                ("high_findings", "2", 0.89, 5),
-            ],
-        }
-        fields = field_sets.get(doc_type, [
-            ("document_title", "Vendor Policy Document", 0.85, 1),
-            ("effective_date", "2025-06-01", 0.80, 1),
-            ("version", "2.1", 0.90, 1),
-        ])
-        return [
-            EvidenceExtraction(
-                tenant_id=tenant_id,
-                evidence_id=evidence_id,
-                field_name=name,
-                field_value=value,
-                confidence=conf,
-                page_number=page,
-            )
-            for name, value, conf, page in fields
-        ]
 
     @staticmethod
     def _to_response(ev: Evidence) -> EvidenceResponse:

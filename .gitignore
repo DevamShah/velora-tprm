@@ -40,3 +40,6 @@ src/backend/.env
 
 # Build
 *.log
+tests/e2e/results/
+*.pack
+*.pack.gz

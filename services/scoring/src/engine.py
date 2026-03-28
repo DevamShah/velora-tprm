@@ -135,7 +135,7 @@ def build_snapshot(vendor: Vendor) -> Dict:
 
 
 def _dimension_score(
-    vendor: Vendor, dimension: str
+    vendor: Vendor, _dimension: str
 ) -> float:
     """Estimate score for a dimension from vendor data."""
     base = 50.0

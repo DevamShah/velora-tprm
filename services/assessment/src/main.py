@@ -19,6 +19,7 @@ from velora_common.db import close_engine, init_engine
 from velora_common.logging import configure_logging, get_logger
 
 from .router import router
+from .cross_deps.vendor_models import Vendor as _Vendor  # noqa: F401 — register for relationship resolution
 
 logger = get_logger(__name__)
 

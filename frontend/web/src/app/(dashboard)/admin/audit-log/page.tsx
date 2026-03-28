@@ -167,7 +167,11 @@ export default function AuditLogPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-text-secondary text-sm truncate max-w-[200px]">
-                        {entry.details || "--"}
+                        {typeof entry.details === "string"
+                          ? entry.details
+                          : entry.details
+                            ? JSON.stringify(entry.details)
+                            : "--"}
                       </TableCell>
                       <TableCell className="text-text-muted text-xs font-mono">
                         {entry.ip_address || "--"}

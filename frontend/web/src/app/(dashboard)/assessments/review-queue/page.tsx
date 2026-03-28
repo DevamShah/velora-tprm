@@ -78,10 +78,10 @@ export default function ReviewQueuePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((item) => {
+                {items.map((item, idx) => {
                   const statusInfo = REVIEW_STATUS_STYLES[item.review_status];
                   return (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.id || `review-${idx}`}>
                       <TableCell>
                         <span className="font-medium text-text-primary">
                           {item.assessment_title}

@@ -73,6 +73,12 @@ class User(TenantBase):
     notification_preferences: Mapped[Optional[Dict]] = mapped_column(
         JSONB, nullable=True, default=dict
     )
+    sso_provider: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True
+    )
+    sso_provider_id: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True
+    )
 
     # Relationships
     user_roles: Mapped[List["UserRole"]] = relationship(

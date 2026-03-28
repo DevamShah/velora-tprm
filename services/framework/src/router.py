@@ -26,6 +26,7 @@ from velora_common.auth import (
 )
 from velora_common.logging import get_logger
 from .schemas import (
+    ClauseResponse,
     FrameworkDetailResponse,
     FrameworkListResponse,
     MappingResponse,
@@ -156,3 +157,57 @@ async def get_clause_mappings(
     """Get cross-framework mappings for a clause."""
     service = FrameworkService(session)
     return await service.get_clause_mappings(clause_id)
+
+
+# -- Bulk Clause Retrieval --------------------------------------------
+
+
+@router.get(
+    "/{framework_id}/clauses/bulk",
+    response_model=List[ClauseResponse],
+    dependencies=[
+        Depends(require_permission("frameworks.read"))
+    ],
+)
+async def get_clauses_bulk(
+    framework_id: uuid.UUID,
+    session: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[
+        dict, Depends(get_current_user)
+    ],
+) -> List[ClauseResponse]:
+    """Get all clauses for a framework (flat list for mapping)."""
+    service = FrameworkService(session)
+    return await service.get_clauses_flat(framework_id)
+
+
+# -- Internal endpoint (service-to-service, no user auth) -----------
+
+internal_router = APIRouter(
+    prefix="/internal/frameworks", tags=["internal"]
+)
+
+
+@internal_router.get(
+    "",
+    response_model=FrameworkListResponse,
+)
+async def internal_list_frameworks(
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> FrameworkListResponse:
+    """Internal: list frameworks for service-to-service."""
+    service = FrameworkService(session)
+    return await service.list_frameworks()
+
+
+@internal_router.get(
+    "/{framework_id}/clauses/bulk",
+    response_model=List[ClauseResponse],
+)
+async def internal_get_clauses_bulk(
+    framework_id: uuid.UUID,
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> List[ClauseResponse]:
+    """Internal: bulk clauses for service-to-service mapping."""
+    service = FrameworkService(session)
+    return await service.get_clauses_flat(framework_id)

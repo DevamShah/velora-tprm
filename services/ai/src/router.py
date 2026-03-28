@@ -59,9 +59,17 @@ async def auto_fill(
 ) -> AutoFillResponse:
     """Trigger AI auto-fill for an assessment."""
     service = AIService(session)
-    result = await service.auto_fill_assessment(
-        current_user["tenant_id"], body.assessment_id
-    )
+    try:
+        result = await service.auto_fill_assessment(
+            current_user["tenant_id"],
+            body.assessment_id,
+        )
+    except Exception:
+        logger.exception("auto_fill_unhandled_error")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="AI service temporarily unavailable",
+        )
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

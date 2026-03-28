@@ -513,3 +513,85 @@ async def update_response(
             detail="Response not found",
         )
     return result
+
+
+# -- Distribution ---------------------------------------------------
+
+
+@router.post(
+    "/{assessment_id}/distribute-email",
+    status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(require_permission("assessments.write"))
+    ],
+)
+async def distribute_assessment_with_email(
+    assessment_id: uuid.UUID,
+    vendor_email: str = Query(
+        ..., pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+    ),
+    due_days: int = Query(default=30, ge=7, le=90),
+    session: Annotated[AsyncSession, Depends(get_db)] = None,
+    current_user: Annotated[
+        dict, Depends(get_current_user)
+    ] = None,
+) -> dict:
+    """Distribute an assessment to a vendor via email."""
+    import os
+    import httpx
+    from datetime import datetime, timedelta, timezone
+
+    service = AssessmentService(session)
+    assessment = await service.get_assessment(
+        current_user["tenant_id"], assessment_id
+    )
+    if assessment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Assessment not found",
+        )
+
+    due_date = datetime.now(timezone.utc) + timedelta(
+        days=due_days
+    )
+
+    # Notify communication service to send email
+    comms_url = os.environ.get(
+        "COMMUNICATION_SERVICE_URL",
+        "http://communication-service:8000",
+    )
+    email_sent = False
+    try:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(15.0, connect=5.0)
+        ) as client:
+            resp = await client.post(
+                f"{comms_url}/api/v1/communications"
+                f"/send-assessment-email",
+                json={
+                    "to_email": vendor_email,
+                    "assessment_id": str(assessment_id),
+                    "assessment_title": assessment.title,
+                    "due_date": due_date.isoformat(),
+                },
+            )
+            email_sent = resp.status_code in (200, 201, 202)
+    except Exception:
+        logger.warning(
+            "distribution_email_failed",
+            assessment_id=str(assessment_id),
+        )
+
+    logger.info(
+        "assessment_distributed",
+        assessment_id=str(assessment_id),
+        due_date=due_date.isoformat(),
+        email_sent=email_sent,
+    )
+
+    return {
+        "assessment_id": str(assessment_id),
+        "status": "distributed" if email_sent else "distributed_email_pending",
+        "email_sent": email_sent,
+        "due_date": due_date.isoformat(),
+    }

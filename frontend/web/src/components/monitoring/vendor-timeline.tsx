@@ -78,7 +78,7 @@ export function VendorTimeline({ vendorId }: VendorTimelineProps) {
     );
   }
 
-  if (events.length === 0) {
+  if (!Array.isArray(events) || events.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-text-muted">
         <Clock className="h-8 w-8 mb-2" />

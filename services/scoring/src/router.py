@@ -262,3 +262,63 @@ async def get_portfolio_summary(
     return await service.get_portfolio_summary(
         current_user["tenant_id"]
     )
+
+
+# -- FAIR Quantification --------------------------------------------
+
+
+@router.post(
+    "/fair/analyze",
+    dependencies=[
+        Depends(require_permission("scoring.read"))
+    ],
+)
+async def fair_analyze(
+    vendor_id: uuid.UUID,
+    data_sensitivity: str = "medium",
+    annual_revenue_at_risk: float = 1_000_000,
+    session: Annotated[AsyncSession, Depends(get_db)] = None,
+    current_user: Annotated[
+        dict, Depends(get_current_user)
+    ] = None,
+) -> dict:
+    """Run FAIR risk quantification for a vendor."""
+    from .fair import FAIRInput, calculate_fair
+
+    # Get vendor's current risk score
+    service = ScoringService(session)
+    history = await service.get_score_history(
+        current_user["tenant_id"], vendor_id
+    )
+    current_score = 50.0  # default
+    if history and history.items:
+        current_score = history.items[0].overall_score
+
+    # Map risk score to threat frequency
+    threat_freq = max(0.1, current_score / 20)
+    vulnerability = min(1.0, current_score / 100)
+
+    params = FAIRInput(
+        vendor_name=str(vendor_id),
+        risk_score=current_score,
+        data_sensitivity=data_sensitivity,
+        annual_revenue_at_risk=annual_revenue_at_risk,
+        threat_event_frequency=threat_freq,
+        vulnerability=vulnerability,
+    )
+
+    result = calculate_fair(params)
+
+    return {
+        "vendor_id": str(vendor_id),
+        "annual_loss_expectancy": result.annual_loss_expectancy,
+        "ale_range": {
+            "min": result.ale_min,
+            "max": result.ale_max,
+        },
+        "loss_event_frequency": result.loss_event_frequency,
+        "single_loss_expectancy": result.single_loss_expectancy,
+        "risk_level": result.risk_level,
+        "simulation_count": result.simulation_count,
+        "confidence": result.confidence,
+    }

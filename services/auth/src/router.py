@@ -22,10 +22,48 @@ from .schemas import (
     UserResponse,
 )
 from .service import AuthService
+from .sso import SSOProviderConfig
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+# -- SSO Endpoints --------------------------------------------------
+
+
+@router.get("/sso/authorize")
+async def sso_authorize(
+    tenant_slug: str,
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    """Initiate SSO login — returns redirect URL."""
+    import secrets
+    # TODO: Look up SSO config from DB by tenant_slug
+    _ = tenant_slug  # will be used when SSO config lookup is implemented
+    # For now, return a placeholder
+    state = secrets.token_urlsafe(32)
+    nonce = secrets.token_urlsafe(32)
+    return {
+        "redirect_url": "",
+        "state": state,
+        "message": "SSO provider not configured for this tenant",
+    }
+
+
+@router.post("/sso/callback")
+async def sso_callback(
+    code: str,
+    state: str,
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    """Handle SSO callback — exchange code for tokens."""
+    # TODO: Validate state, look up tenant config,
+    # call SSOService.handle_oidc_callback()
+    # For MVP: structure is ready, needs tenant SSO config CRUD
+    return {
+        "error": "SSO callback handler ready — tenant SSO config CRUD needed",
+    }
 
 
 @router.post(

@@ -5,7 +5,7 @@
 **AI-Native Third-Party Risk Management Platform**
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-red.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)]()
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-green.svg)]()
 [![Next.js 15](https://img.shields.io/badge/next.js-15-black.svg)]()
 [![Services](https://img.shields.io/badge/microservices-14-purple.svg)]()
@@ -153,10 +153,8 @@ npm install && npm run dev
 
 | Email | Password | Role |
 |-------|----------|------|
-| devam@velora.io | devam123 | Admin |
-| manager@velora.io | manager123 | TPRM Manager |
-| analyst@velora.io | analyst123 | Risk Analyst |
-| viewer@velora.io | viewer123 | Viewer |
+| admin@velora-demo.com | admin123 | Admin |
+| analyst@velora-demo.com | analyst123 | Risk Analyst |
 
 ## Project Structure
 

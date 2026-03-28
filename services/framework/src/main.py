@@ -18,7 +18,7 @@ from velora_common.config import BaseServiceSettings
 from velora_common.db import close_engine, init_engine
 from velora_common.logging import configure_logging, get_logger
 
-from .router import router
+from .router import internal_router, router
 
 logger = get_logger(__name__)
 
@@ -60,6 +60,7 @@ def create_app() -> FastAPI:
 
     # Routers
     app.include_router(router, prefix="/api/v1")
+    app.include_router(internal_router, prefix="/api/v1")
 
     # Health check
     @app.get("/health", tags=["infra"])

@@ -52,16 +52,6 @@ class ReviewSubmitRequest(BaseModel):
 # -- Responses ------------------------------------------------------
 
 
-class AutoFillResponse(BaseModel):
-    """Result of AI auto-fill operation."""
-
-    assessment_id: uuid.UUID
-    questions_filled: int
-    total_questions: int
-    average_confidence: float
-    skipped_count: int
-
-
 class ReviewQueueItem(BaseModel):
     """Single item in the AI review queue."""
 
@@ -92,6 +82,29 @@ class ReviewSubmitResponse(BaseModel):
     item_type: str
     decision: str
     updated: bool
+
+
+class AutoFillAnswerDetail(BaseModel):
+    """Single AI-generated answer with confidence and citations."""
+
+    question_id: uuid.UUID
+    answer: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    reasoning: str = ""
+    evidence_citations: List[str] = Field(default_factory=list)
+
+
+class AutoFillResponse(BaseModel):
+    """Result of AI auto-fill operation."""
+
+    assessment_id: uuid.UUID
+    questions_filled: int
+    total_questions: int
+    average_confidence: float
+    skipped_count: int
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
+    answers: List[AutoFillAnswerDetail] = Field(default_factory=list)
 
 
 class AIUsageStats(BaseModel):

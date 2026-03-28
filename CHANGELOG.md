@@ -4,6 +4,68 @@ All notable changes to this product will be documented in this file.
 
 ---
 
+## [2.1.0] -- 2026-03-29
+
+### AI Intelligence Layer (replacing v2.0 mocks)
+- **Real Claude API integration** — Anthropic Claude auto-fill with confidence scoring, evidence citations, prompt injection protection (XML delimiters + sanitization), 200-question cap, token tracking, graceful fallback
+- **Evidence parsing** — Azure Document Intelligence for SOC 2, ISO 27001, pen test reports with typed extractors; MinIO S3-compatible storage replacing mock URLs
+- **Evidence-to-control mapping** — Keyword-based mapping engine with coverage types (full/partial/supportive), confidence scoring, internal service API for cross-service calls
+- **FAIR quantification** — Monte Carlo simulation (10K iterations), Annual Loss Expectancy with percentile ranges, data sensitivity multipliers
+- **Cross-framework mapping** — Bulk clause retrieval API, keyword matching across framework controls
+
+### Enterprise Authentication
+- **SSO/OIDC** — OIDC authorization code flow, JIT (Just-In-Time) user provisioning, User model extended with sso_provider fields
+- **SSO endpoints** — /auth/sso/authorize and /auth/sso/callback scaffolded for tenant SSO config
+
+### Vendor Portal
+- **Portal frontend** — White-labeled Next.js portal with vendor dashboard, assessments, evidence upload, findings pages
+- **Portal BFF routes** — /api/portal/* endpoints with magic link auth, portal session validation
+- **Portal navigation** — Separate layout with Velora Vendor Portal branding
+
+### Monitoring & Alerting
+- **SecurityScorecard API client** — Async client with retry, score normalization (0-100)
+- **Alert correlation engine** — P0-P4 auto-priority classification, 24h deduplication, 48h correlation (3+ P2/P3 escalates to P1)
+- **Signal model extensions** — signal_type, signal_data, priority fields on MonitoringSignal and Alert models
+
+### Communications & Distribution
+- **Real email via SendGrid** — Template rendering (sandboxed Jinja2), assessment invitations, SLA reminders
+- **Assessment distribution** — /distribute-email endpoint with email validation, due date, SLA configuration
+- **Email delivery status** — Response distinguishes distributed vs distributed_email_pending
+
+### Reporting
+- **Board-ready PDF** — WeasyPrint with branded HTML templates, autoescape enabled
+- **Board-ready PPTX** — python-pptx with title, executive summary, metrics, top-10 vendors slides
+- **AI narrative engine** — Executive summary generation via Claude API
+- **Chart generation** — matplotlib for risk heatmaps, trend charts, FAIR curves
+
+### Quality & Security Hardening
+- **Dockerfile security** — All 14 Dockerfiles now run as non-root USER (appuser)
+- **Prompt injection protection** — XML delimiter tags, _sanitize() with length caps on all AI prompts
+- **Response validation** — Confidence clamping [0.0, 1.0], answer truncation, question_id validation against sent batch
+- **Error leakage prevention** — Generic 502 at router level for unhandled AI errors
+- **Jinja2 sandboxing** — SandboxedEnvironment in email sender, autoescape in report generator
+- **File upload security** — mime_type allowlist, filename sanitization (path traversal prevention), 100MB download cap
+- **Import path fix** — Reporting service cross_deps from absolute to relative imports (fixed dashboard 500)
+
+### Code Quality
+- **Complexity reduction** — auto_fill_assessment and process_evidence refactored into smaller methods
+- **Dead code cleanup** — 15 unused imports/variables removed across 7 services
+- **Frontend deduplication** — Shared useCrudList, useCrudDetail, useCrudMutation, useCrudArray hooks
+- **Runtime bug fixes** — admin/settings TypeError, vendor-timeline TypeError, audit-log object rendering, portal unescaped entity, review-queue duplicate keys
+
+### Testing Infrastructure
+- **Playwright E2E** — 18 smoke tests + 18 interaction tests with headless Chromium
+- **48 screenshots** — Every page, tab, search, filter, detail view, sidebar state captured
+- **Tool scanning** — Bandit, Semgrep (296 rules), Gitleaks, Trivy, Ruff, ESLint, Radon, Vulture, JSCPD, Madge, Lighthouse, TypeScript strict check
+- **Build verification** — next build with 0 errors enforced as gate
+
+### Process & Governance
+- 4 process documents (PROC-sprint-plan-mca, PROC-phase8-execution, PROC-phase9-qa, PROC-gate5-release)
+- Sprint plan v2.1: 11 sprints, 63 stories, full MCA (Yojika → Tantron → Rudron)
+- RCA-VELORA-001: Root cause analysis on testing failures, 5 fixes implemented
+
+---
+
 ## [2.0.0] -- 2026-03-28
 
 ### Architecture
