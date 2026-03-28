@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "velora-tprm"
+version = "2.0.0"
+description = "Velora TPRM — Third-Party Risk Management Platform"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = [
+    "packages/velora-common",
+    "services/auth",
+    "services/vendor",
+    "services/assessment",
+    "services/framework",
+    "services/scoring",
+    "services/evidence",
+    "services/monitoring",
+    "services/finding",
+    "services/communication",
+    "services/reporting",
+    "services/admin",
+    "services/ai",
+    "services/workflow",
+    "services/bff",
+]
+
+[tool.uv.sources]
+velora-common = { workspace = true }
+
+[tool.ruff]
+target-version = "py312"
+line-length = 79
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "DTZ", "T20", "ICN", "PIE", "PT", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "ARG", "PTH", "PL"]
+
+[tool.pytest.ini_options]
+testpaths = ["services/*/tests"]
+asyncio_mode = "auto"

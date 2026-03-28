@@ -1,0 +1,70 @@
+[project]
+name = "velora-tprm"
+version = "2.0.0"
+description = "Third-Party Risk Management platform"
+requires-python = ">=3.9"
+
+# ── Ruff ──────────────────────────────────────────────────────
+
+[tool.ruff]
+target-version = "py39"
+line-length = 79
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "ANN",  # flake8-annotations
+    "B",    # flake8-bugbear
+    "S",    # flake8-bandit
+    "T20",  # flake8-print
+    "SIM",  # flake8-simplify
+    "PLW",  # pylint warnings
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "ANN101",  # missing self type annotation
+    "ANN102",  # missing cls type annotation
+    "ANN401",  # dynamically typed Any
+    "S105",    # possible hardcoded password (false positives in tests)
+    "S106",    # same
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+# ── MyPy ──────────────────────────────────────────────────────
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["jose.*", "slowapi.*", "structlog.*", "redis.*", "aioboto3.*"]
+ignore_missing_imports = true
+
+# ── Pytest ────────────────────────────────────────────────────
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "--strict-markers -v --cov=app --cov-report=term-missing"
+markers = [
+    "integration: marks tests requiring live DB/Redis",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/core/seed.py", "alembic/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true

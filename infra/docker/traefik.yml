@@ -1,0 +1,24 @@
+# =================================================================
+# Velora TPRM — Traefik Static Configuration
+# =================================================================
+# API gateway for routing requests to backend microservices.
+# Dev-only dashboard enabled on :8080 — disable in production.
+# =================================================================
+
+api:
+  dashboard: true
+  insecure: true  # Dev only — disable in production
+
+entryPoints:
+  web:
+    address: ":80"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: velora
+  file:
+    filename: /etc/traefik/dynamic.yml
+
+log:
+  level: INFO

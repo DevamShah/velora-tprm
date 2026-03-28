@@ -1,0 +1,329 @@
+version: "3.9"
+
+# =================================================================
+# Velora TPRM — Microservices Docker Compose
+# =================================================================
+# Usage:
+#   docker compose up                         # infra only
+#   docker compose --profile core up          # infra + core services
+#   docker compose --profile core --profile comms --profile reporting --profile admin --profile ai --profile frontend up  # everything
+# =================================================================
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  env_file: .env
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks:
+    - velora
+
+services:
+  # ═══════════════════════════════════════════════════════════════
+  # Infrastructure (always on)
+  # ═══════════════════════════════════════════════════════════════
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: velora_tprm
+      POSTGRES_USER: velora
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-velora_dev_password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/db/init-schemas.sql:/docker-entrypoint-initdb.d/01-init-schemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U velora -d velora_tprm"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - velora
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - velora
+
+  opa:
+    image: openpolicyagent/opa:0.68.0-static
+    ports:
+      - "8181:8181"
+    command:
+      - "run"
+      - "--server"
+      - "--log-level=info"
+      - "/policies"
+    volumes:
+      - ./policies:/policies:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8181/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - velora
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - velora
+
+  # ═══════════════════════════════════════════════════════════════
+  # Core Services
+  # ═══════════════════════════════════════════════════════════════
+
+  auth-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    ports:
+      - "8001:8000"
+    profiles: ["core"]
+
+  vendor-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/vendor/Dockerfile
+    ports:
+      - "8002:8000"
+    profiles: ["core"]
+
+  assessment-engine:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/assessment/Dockerfile
+    ports:
+      - "8003:8000"
+    profiles: ["core"]
+
+  framework-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/framework/Dockerfile
+    ports:
+      - "8004:8000"
+    profiles: ["core"]
+
+  scoring-engine:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/scoring/Dockerfile
+    ports:
+      - "8005:8000"
+    profiles: ["core"]
+
+  evidence-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/evidence/Dockerfile
+    ports:
+      - "8006:8000"
+    profiles: ["core"]
+
+  monitoring-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/monitoring/Dockerfile
+    ports:
+      - "8007:8000"
+    profiles: ["core"]
+
+  finding-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/finding/Dockerfile
+    ports:
+      - "8008:8000"
+    profiles: ["core"]
+
+  # ═══════════════════════════════════════════════════════════════
+  # Communication Services
+  # ═══════════════════════════════════════════════════════════════
+
+  communication-hub:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/communication/Dockerfile
+    ports:
+      - "8009:8000"
+    profiles: ["comms"]
+
+  # ═══════════════════════════════════════════════════════════════
+  # Reporting Services
+  # ═══════════════════════════════════════════════════════════════
+
+  reporting-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/reporting/Dockerfile
+    ports:
+      - "8010:8000"
+    profiles: ["reporting"]
+
+  # ═══════════════════════════════════════════════════════════════
+  # Admin Services
+  # ═══════════════════════════════════════════════════════════════
+
+  admin-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/admin/Dockerfile
+    ports:
+      - "8011:8000"
+    profiles: ["admin"]
+
+  # ═══════════════════════════════════════════════════════════════
+  # AI Services
+  # ═══════════════════════════════════════════════════════════════
+
+  ai-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/ai/Dockerfile
+    ports:
+      - "8012:8000"
+    profiles: ["ai"]
+
+  # ═══════════════════════════════════════════════════════════════
+  # Workflow Services
+  # ═══════════════════════════════════════════════════════════════
+
+  workflow-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/workflow/Dockerfile
+    ports:
+      - "8013:8000"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_NAMESPACE=default
+      - TEMPORAL_TASK_QUEUE=velora-tprm
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    profiles: ["workflow"]
+
+  temporal:
+    image: temporalio/auto-setup:latest
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=velora
+      - POSTGRES_PWD=${POSTGRES_PASSWORD:-velora_dev_password}
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["workflow"]
+    networks:
+      - velora
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    ports:
+      - "8088:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      - temporal
+    profiles: ["workflow"]
+    networks:
+      - velora
+
+  # ═══════════════════════════════════════════════════════════════
+  # API Gateway
+  # ═══════════════════════════════════════════════════════════════
+
+  traefik:
+    image: traefik:v3.0
+    ports:
+      - "80:80"
+      - "8080:8080"  # Dashboard (dev only)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./infra/docker/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./infra/docker/traefik-dynamic.yml:/etc/traefik/dynamic.yml:ro
+    networks:
+      - velora
+    profiles: ["gateway"]
+
+  # ═══════════════════════════════════════════════════════════════
+  # Frontend Services
+  # ═══════════════════════════════════════════════════════════════
+
+  bff-service:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: services/bff/Dockerfile
+    ports:
+      - "8000:8000"
+    profiles: ["frontend"]
+
+  web-app:
+    build:
+      context: frontend/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://bff-service:8000
+    profiles: ["frontend"]
+    networks:
+      - velora
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
+
+networks:
+  velora:
+    driver: bridge

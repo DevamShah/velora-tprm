@@ -1,0 +1,46 @@
+# Velora TPRM v2.0 — Backend dependencies
+# Framework
+fastapi>=0.115.0
+eval-type-backport>=0.2.0  # Python 3.9 compat for PEP 604 union syntax in Pydantic
+uvicorn[standard]>=0.34.0
+pydantic[email]>=2.10.0
+pydantic-settings>=2.7.0
+
+# Database
+sqlalchemy[asyncio]>=2.0.36
+asyncpg>=0.30.0
+alembic>=1.14.0
+
+# Cache / rate-limiting
+redis>=5.2.0
+slowapi>=0.1.9
+
+# Auth / crypto
+python-jose[cryptography]>=3.3.0
+bcrypt>=4.2.0
+cryptography>=44.0.0
+
+# Logging
+structlog>=24.4.0
+
+# LLM clients (optional — install if using AI features)
+# anthropic>=0.42.0
+# openai>=1.58.0
+
+# Object storage
+boto3>=1.36.0
+
+# Observability
+sentry-sdk[fastapi]>=2.19.0
+prometheus-fastapi-instrumentator>=7.0.0
+
+# Linting / type checking
+ruff>=0.8.0
+mypy>=1.14.0
+
+# Testing
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
+httpx>=0.28.0
+factory-boy>=3.3.0

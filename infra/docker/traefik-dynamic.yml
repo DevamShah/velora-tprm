@@ -1,0 +1,169 @@
+# =================================================================
+# Velora TPRM — Traefik Dynamic Routing Configuration
+# =================================================================
+# Maps URL prefixes to backend microservices.
+# BFF is the catch-all with lowest priority.
+# =================================================================
+
+http:
+  routers:
+    # Route /api/v1/auth/* to auth-service
+    auth:
+      rule: "PathPrefix(`/api/v1/auth`)"
+      service: auth-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    # Route /api/v1/vendors/* to vendor-service
+    vendors:
+      rule: "PathPrefix(`/api/v1/vendors`)"
+      service: vendor-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    # Route /api/v1/assessments/* to assessment-engine
+    assessments:
+      rule: "PathPrefix(`/api/v1/assessments`)"
+      service: assessment-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    frameworks:
+      rule: "PathPrefix(`/api/v1/frameworks`)"
+      service: framework-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    scoring:
+      rule: "PathPrefix(`/api/v1/scoring`)"
+      service: scoring-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    evidence:
+      rule: "PathPrefix(`/api/v1/evidence`)"
+      service: evidence-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    monitoring:
+      rule: "PathPrefix(`/api/v1/monitoring`)"
+      service: monitoring-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    findings:
+      rule: "PathPrefix(`/api/v1/findings`)"
+      service: finding-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    communications:
+      rule: "PathPrefix(`/api/v1/communications`)"
+      service: communication-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    reports:
+      rule: "PathPrefix(`/api/v1/reports`)"
+      service: reporting-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    admin:
+      rule: "PathPrefix(`/api/v1/admin`)"
+      service: admin-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    ai:
+      rule: "PathPrefix(`/api/v1/ai`)"
+      service: ai-service
+      entryPoints: [web]
+      middlewares: [cors, rate-limit]
+
+    # BFF catches everything else under /api
+    bff:
+      rule: "PathPrefix(`/api`)"
+      service: bff-service
+      entryPoints: [web]
+      priority: 1
+      middlewares: [cors, rate-limit]
+
+  services:
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:8000"
+    vendor-service:
+      loadBalancer:
+        servers:
+          - url: "http://vendor-service:8000"
+    assessment-service:
+      loadBalancer:
+        servers:
+          - url: "http://assessment-engine:8000"
+    framework-service:
+      loadBalancer:
+        servers:
+          - url: "http://framework-service:8000"
+    scoring-service:
+      loadBalancer:
+        servers:
+          - url: "http://scoring-engine:8000"
+    evidence-service:
+      loadBalancer:
+        servers:
+          - url: "http://evidence-service:8000"
+    monitoring-service:
+      loadBalancer:
+        servers:
+          - url: "http://monitoring-service:8000"
+    finding-service:
+      loadBalancer:
+        servers:
+          - url: "http://finding-service:8000"
+    communication-service:
+      loadBalancer:
+        servers:
+          - url: "http://communication-hub:8000"
+    reporting-service:
+      loadBalancer:
+        servers:
+          - url: "http://reporting-service:8000"
+    admin-service:
+      loadBalancer:
+        servers:
+          - url: "http://admin-service:8000"
+    ai-service:
+      loadBalancer:
+        servers:
+          - url: "http://ai-service:8000"
+    bff-service:
+      loadBalancer:
+        servers:
+          - url: "http://bff-service:8000"
+
+  middlewares:
+    cors:
+      headers:
+        accessControlAllowOriginList:
+          - "http://localhost:3000"
+        accessControlAllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "PATCH"
+          - "OPTIONS"
+        accessControlAllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+          - "X-Request-ID"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 3600
+
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
