@@ -200,18 +200,23 @@ export default function FindingDetailPage() {
                 </p>
               </div>
             )}
-            {finding.affected_controls.length > 0 && (
+            {finding.affected_controls && finding.affected_controls.length > 0 && (
               <div>
                 <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
                   Affected Controls
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {finding.affected_controls.map((control) => (
-                    <Badge key={control} variant="outline" className="text-xs">
-                      <Shield className="w-3 h-3 mr-1" />
-                      {control}
-                    </Badge>
-                  ))}
+                  {finding.affected_controls.map((control, idx) => {
+                    const label = typeof control === "string"
+                      ? control
+                      : (control as Record<string, unknown>).name || (control as Record<string, unknown>).id || JSON.stringify(control);
+                    return (
+                      <Badge key={String(label) + idx} variant="outline" className="text-xs">
+                        <Shield className="w-3 h-3 mr-1" />
+                        {String(label)}
+                      </Badge>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -221,7 +226,7 @@ export default function FindingDetailPage() {
                   Remediation Guidance
                 </p>
                 <div className="rounded-lg bg-surface-main/60 p-3 text-sm text-text-secondary leading-relaxed">
-                  {finding.remediation_guidance}
+                  <RemediationGuidanceContent guidance={finding.remediation_guidance} />
                 </div>
               </div>
             )}
@@ -426,6 +431,43 @@ export default function FindingDetailPage() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function RemediationGuidanceContent({ guidance }: { guidance: any }) {
+  if (typeof guidance === "string") {
+    return <>{guidance}</>;
+  }
+
+  const g = guidance as Record<string, string | string[]>;
+  return (
+    <div className="space-y-2">
+      {g.risk_impact && (
+        <div>
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">Risk Impact</p>
+          <p>{String(g.risk_impact)}</p>
+        </div>
+      )}
+      {g.recommendation && (
+        <div>
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">Recommendation</p>
+          <p>{String(g.recommendation)}</p>
+        </div>
+      )}
+      {g.affected_controls && Array.isArray(g.affected_controls) && (
+        <div>
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">Controls</p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {(g.affected_controls as string[]).map((c, i) => (
+              <Badge key={i} variant="outline" className="text-xs">
+                {String(c)}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
