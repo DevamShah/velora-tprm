@@ -75,7 +75,7 @@ function DimensionTooltip({ active, payload }: { active?: boolean; payload?: Arr
   const data = payload[0].payload;
 
   return (
-    <div className="rounded-lg border border-surface-card-border bg-white px-3 py-2 shadow-md">
+    <div className="rounded-lg border border-surface-card-border bg-surface-card px-3 py-2 shadow-md">
       <p className="text-xs font-semibold text-text-primary mb-1">
         {data.dimension}
       </p>

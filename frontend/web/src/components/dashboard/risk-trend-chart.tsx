@@ -55,7 +55,7 @@ export function RiskTrendChart({ avgRiskScore }: RiskTrendChartProps) {
               className={cn(
                 "px-2.5 py-1 text-xs font-medium rounded-md transition-all",
                 range === d
-                  ? "bg-white text-text-primary shadow-sm"
+                  ? "bg-surface-card text-text-primary shadow-sm"
                   : "text-text-muted hover:text-text-secondary"
               )}
             >
@@ -90,7 +90,7 @@ export function RiskTrendChart({ avgRiskScore }: RiskTrendChartProps) {
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null;
                 return (
-                  <div className="rounded-lg border border-surface-card-border bg-white px-3 py-2 shadow-sm text-xs">
+                  <div className="rounded-lg border border-surface-card-border bg-surface-card px-3 py-2 shadow-sm text-xs">
                     <p className="text-text-muted">{label}</p>
                     <p className="font-semibold text-text-primary">
                       Risk Score: {payload[0].value}

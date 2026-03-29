@@ -28,7 +28,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-xl border border-surface-card-border bg-white p-5 transition-shadow hover:shadow-md",
+        "rounded-xl border border-surface-card-border bg-surface-card p-5 velora-card-hover",
         className
       )}
     >

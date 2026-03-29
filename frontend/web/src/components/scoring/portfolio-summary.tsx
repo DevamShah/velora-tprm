@@ -119,7 +119,7 @@ function RiskTooltip({ active, payload }: { active?: boolean; payload?: Array<{ 
   const data = payload[0].payload;
 
   return (
-    <div className="rounded-lg border border-surface-card-border bg-white px-3 py-2 shadow-md">
+    <div className="rounded-lg border border-surface-card-border bg-surface-card px-3 py-2 shadow-md">
       <div className="flex items-center gap-2">
         <span
           className="w-2.5 h-2.5 rounded-full"

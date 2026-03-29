@@ -33,7 +33,7 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface-main">
+    <div className="flex h-screen overflow-hidden bg-surface-main transition-colors duration-200">
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header onCommandPaletteOpen={() => setCommandOpen(true)} />

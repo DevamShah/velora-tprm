@@ -87,7 +87,7 @@ function TrendTooltip({ active, payload }: { active?: boolean; payload?: Array<{
   const data = payload[0].payload;
 
   return (
-    <div className="rounded-lg border border-surface-card-border bg-white px-3 py-2 shadow-md">
+    <div className="rounded-lg border border-surface-card-border bg-surface-card px-3 py-2 shadow-md">
       <p className="text-xs font-medium text-text-muted mb-0.5">{data.date}</p>
       <p className="text-sm font-semibold" style={{ color: getScoreColor(data.score) }}>
         Score: {data.score}

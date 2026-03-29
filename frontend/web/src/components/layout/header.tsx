@@ -39,7 +39,7 @@ export function Header({ onCommandPaletteOpen }: HeaderProps) {
     : "U";
 
   return (
-    <header className="flex items-center justify-between h-14 px-6 bg-surface-header border-b border-surface-card-border">
+    <header className="flex items-center justify-between h-14 px-6 bg-surface-header border-b border-surface-card-border transition-colors duration-200">
       <Breadcrumbs items={breadcrumbs} />
       <div className="flex items-center gap-2">
         <SearchButton onClick={onCommandPaletteOpen} />
@@ -129,7 +129,7 @@ function NotificationBell() {
         <button className="relative flex items-center justify-center w-8 h-8 rounded-lg text-text-muted hover:bg-surface-main hover:text-text-primary transition-colors">
           <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
-            <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center p-0 text-[10px] bg-accent-error text-white border-2 border-white rounded-full">
+            <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center p-0 text-[10px] bg-accent-error text-white border-2 border-surface-header rounded-full">
               {unreadCount > 99 ? "99+" : unreadCount}
             </Badge>
           )}

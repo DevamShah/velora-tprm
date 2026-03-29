@@ -9,10 +9,10 @@ import {
   FileBarChart,
   MessageSquare,
   Users,
-
   Settings,
   ScrollText,
   Plug,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -49,6 +49,7 @@ export const navigation: NavSection[] = [
       { label: "Frameworks", href: "/frameworks", icon: Shield },
       { label: "Evidence", href: "/evidence", icon: FileCheck },
       { label: "Monitoring", href: "/monitoring", icon: Activity },
+      { label: "Ask Velora", href: "/ai", icon: Sparkles },
     ],
   },
   {

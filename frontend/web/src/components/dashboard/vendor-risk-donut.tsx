@@ -68,7 +68,7 @@ export function VendorRiskDonut({
                 if (!active || !payload?.length) return null;
                 const item = payload[0];
                 return (
-                  <div className="rounded-lg border border-surface-card-border bg-white px-3 py-2 shadow-sm text-xs">
+                  <div className="rounded-lg border border-surface-card-border bg-surface-card px-3 py-2 shadow-sm text-xs">
                     <p className="font-semibold text-text-primary">
                       {item.name}
                     </p>
