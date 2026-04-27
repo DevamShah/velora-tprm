@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM v2.0 — Stage A QA Checklist
 
 > **Author**: Parikshika (QA Lead, Pantheon)

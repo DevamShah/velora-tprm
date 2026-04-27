@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM — Allocation Plan v1.0
 
 > Built by Harion. Archeon's first product build.

@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM AI Service — Phase 8 Execution (Sprint 1)
 
 ## Context

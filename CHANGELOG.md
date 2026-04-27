@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM -- Changelog
 
 All notable changes to this product will be documented in this file.

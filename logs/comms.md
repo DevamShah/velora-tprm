@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM — Communication Log
 
 | MSG-ID | Timestamp | From | To | Type | Subject | Verdict |

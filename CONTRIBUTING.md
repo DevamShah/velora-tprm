@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Contributing to Velora TPRM
 
 Thank you for your interest in contributing to Velora TPRM. This guide will help you get started.

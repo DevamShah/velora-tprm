@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM v2.1 — QA Checklist (Stage A)
 
 > Created by: Parikshika (QA) via Harion

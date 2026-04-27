@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 ## Sprint 1 Completion — Velora TPRM
 **Date:** 2026-03-28
 **Session:** v2.1 Intelligence Layer Build — Sprint 1

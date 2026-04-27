@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM -- High-Level Design
 
 > **Product**: Velora TPRM (Third-Party Risk Management)

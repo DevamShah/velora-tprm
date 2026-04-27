@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM v2.0 — Sprint Plan
 
 > **Author**: Yojika (Sprint Planning Agent) under Harion orchestration

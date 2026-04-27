@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Contributor Covenant Code of Conduct
 
 ## Our Pledge

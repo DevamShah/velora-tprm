@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM — Cost Log
 
 > Arthon tracks token spend here. Monitor-only mode active (no auto-pause).

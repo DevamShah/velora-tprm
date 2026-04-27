@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # Velora TPRM -- Scoring, Framework Intelligence & Assessment Research
 
 **Research Date:** 2026-03-27

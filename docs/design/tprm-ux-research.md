@@ -1,3 +1,11 @@
+---
+tags:
+  - archeon
+  - forgeon
+  - product
+  - product-velora
+---
+
 # TPRM Platform UI/UX Deep Research
 
 > **Purpose**: Actionable UI/UX intelligence from leading TPRM tools and premium SaaS platforms
