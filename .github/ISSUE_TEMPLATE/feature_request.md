@@ -4,11 +4,6 @@ about: Suggest a feature for Velora TPRM
 title: "[FEATURE] "
 labels: enhancement
 assignees: ''
-tags:
-  - archeon
-  - forgeon
-  - product
-  - product-velora
 ---
 
 ## Problem

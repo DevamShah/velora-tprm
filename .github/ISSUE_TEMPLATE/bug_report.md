@@ -4,11 +4,6 @@ about: Report a bug in Velora TPRM
 title: "[BUG] "
 labels: bug
 assignees: ''
-tags:
-  - archeon
-  - forgeon
-  - product
-  - product-velora
 ---
 
 ## Description

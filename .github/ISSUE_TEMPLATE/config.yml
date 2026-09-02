@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/DevamShah/velora-tprm/security/policy
+    about: Do not open a public issue. Report privately per SECURITY.md.
+  - name: Questions and ideas
+    url: https://github.com/DevamShah/velora-tprm/discussions
+    about: Ask a question, share a use case, or propose a direction.
