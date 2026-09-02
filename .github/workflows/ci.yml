@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
 
+# Least privilege by default: every job here only reads the repository.
+# Any job that genuinely needs more should widen it at the job level.
+permissions:
+  contents: read
+
 jobs:
   lint-backend:
     name: Backend Lint
@@ -14,8 +19,8 @@ jobs:
       run:
         working-directory: src/backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
       - run: pip install ruff mypy
@@ -29,8 +34,8 @@ jobs:
       run:
         working-directory: src/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
       - run: npm ci
@@ -43,8 +48,8 @@ jobs:
       run:
         working-directory: src/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
       - run: npm ci
@@ -80,8 +85,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
@@ -93,3 +98,22 @@ jobs:
           ENCRYPTION_KEY: dGVzdC1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcw==
           S3_ENDPOINT: http://localhost:9000
           S3_BUCKET: test-bucket
+
+  test-bff:
+    name: BFF Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/bff
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      # velora-common is a local path dependency of the BFF package, so it
+      # has to be installed from the workspace rather than resolved from
+      # an index. pytest-asyncio is not used by the tests themselves —
+      # they call asyncio.run directly — but services/bff/pyproject.toml
+      # sets asyncio_mode, which pytest warns about unless it is present.
+      - run: pip install ../../packages/velora-common . pytest pytest-asyncio
+      - run: pytest tests/ -q
