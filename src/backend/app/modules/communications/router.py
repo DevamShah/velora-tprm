@@ -55,9 +55,7 @@ router = APIRouter(
 )
 async def list_notifications(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> NotificationListResponse:
@@ -81,9 +79,7 @@ async def list_notifications(
 async def mark_notification_read(
     notification_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> NotificationResponse:
     """Mark a single notification as read."""
     service = CommunicationsService(session)
@@ -107,9 +103,7 @@ async def mark_notification_read(
 )
 async def mark_all_notifications_read(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> dict:
     """Mark all unread notifications as read."""
     service = CommunicationsService(session)
@@ -129,9 +123,7 @@ async def mark_all_notifications_read(
 )
 async def get_preferences(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[PreferenceResponse]:
     """Fetch notification preferences for current user."""
     service = CommunicationsService(session)
@@ -151,9 +143,7 @@ async def get_preferences(
 async def update_preferences(
     body: PreferenceUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> PreferenceResponse:
     """Create or update a notification preference."""
     service = CommunicationsService(session)
@@ -170,21 +160,15 @@ async def update_preferences(
 @router.get(
     "/templates",
     response_model=list[EmailTemplateResponse],
-    dependencies=[
-        Depends(require_permission("admin.settings"))
-    ],
+    dependencies=[Depends(require_permission("admin.settings"))],
 )
 async def list_email_templates(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[EmailTemplateResponse]:
     """List all email templates."""
     service = CommunicationsService(session)
-    return await service.list_email_templates(
-        current_user["tenant_id"]
-    )
+    return await service.list_email_templates(current_user["tenant_id"])
 
 
 # -- Create Email Template ------------------------------------------
@@ -194,22 +178,16 @@ async def list_email_templates(
     "/templates",
     response_model=EmailTemplateResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_permission("admin.settings"))
-    ],
+    dependencies=[Depends(require_permission("admin.settings"))],
 )
 async def create_email_template(
     body: EmailTemplateCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> EmailTemplateResponse:
     """Create a new email template."""
     service = CommunicationsService(session)
-    return await service.create_email_template(
-        current_user["tenant_id"], body
-    )
+    return await service.create_email_template(current_user["tenant_id"], body)
 
 
 # -- Update Email Template ------------------------------------------
@@ -218,17 +196,13 @@ async def create_email_template(
 @router.put(
     "/templates/{template_id}",
     response_model=EmailTemplateResponse,
-    dependencies=[
-        Depends(require_permission("admin.settings"))
-    ],
+    dependencies=[Depends(require_permission("admin.settings"))],
 )
 async def update_email_template(
     template_id: uuid.UUID,
     body: EmailTemplateUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> EmailTemplateResponse:
     """Update an existing email template."""
     service = CommunicationsService(session)
@@ -249,19 +223,13 @@ async def update_email_template(
 @router.get(
     "/logs",
     response_model=CommLogListResponse,
-    dependencies=[
-        Depends(require_permission("admin.settings"))
-    ],
+    dependencies=[Depends(require_permission("admin.settings"))],
 )
 async def get_communication_logs(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
     channel: str | None = Query(None),
-    status_filter: str | None = Query(
-        None, alias="status"
-    ),
+    status_filter: str | None = Query(None, alias="status"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> CommLogListResponse:

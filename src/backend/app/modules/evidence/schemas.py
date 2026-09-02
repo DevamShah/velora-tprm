@@ -111,9 +111,7 @@ class EvidenceFilterParams(BaseModel):
             "document_type",
         }
         if value not in allowed:
-            raise ValueError(
-                f"sort_by must be one of {allowed}"
-            )
+            raise ValueError(f"sort_by must be one of {allowed}")
         return value
 
 
@@ -176,9 +174,7 @@ class EvidenceDetailResponse(EvidenceResponse):
     parsed_content: dict[str, Any] | None = None
     extraction_summary: dict[str, Any] | None = None
     extractions: list[EvidenceExtractionResponse] = []
-    control_mappings: list[
-        EvidenceControlMappingResponse
-    ] = []
+    control_mappings: list[EvidenceControlMappingResponse] = []
 
 
 class EvidenceListResponse(BaseModel):

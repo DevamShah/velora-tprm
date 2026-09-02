@@ -54,27 +54,19 @@ class CommunicationsService:
             Notification.tenant_id == tenant_id,
             Notification.user_id == user_id,
         )
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
-        total = (
-            await self._session.execute(count_q)
-        ).scalar() or 0
+        count_q = select(func.count()).select_from(base.subquery())
+        total = (await self._session.execute(count_q)).scalar() or 0
 
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            base.order_by(
-                Notification.created_at.desc()
-            )
+            base.order_by(Notification.created_at.desc())
             .offset(offset)
             .limit(page_size)
         )
         items = result.scalars().all()
 
         return NotificationListResponse(
-            items=[
-                self._to_notification(n) for n in items
-            ],
+            items=[self._to_notification(n) for n in items],
             total=total,
             page=page,
             page_size=page_size,
@@ -136,10 +128,8 @@ class CommunicationsService:
         """Fetch notification preferences for a user."""
         result = await self._session.execute(
             select(NotificationPreference).where(
-                NotificationPreference.tenant_id
-                == tenant_id,
-                NotificationPreference.user_id
-                == user_id,
+                NotificationPreference.tenant_id == tenant_id,
+                NotificationPreference.user_id == user_id,
             )
         )
         prefs = result.scalars().all()
@@ -156,12 +146,9 @@ class CommunicationsService:
         """Create or update a notification preference."""
         result = await self._session.execute(
             select(NotificationPreference).where(
-                NotificationPreference.tenant_id
-                == tenant_id,
-                NotificationPreference.user_id
-                == user_id,
-                NotificationPreference.category
-                == data.category,
+                NotificationPreference.tenant_id == tenant_id,
+                NotificationPreference.user_id == user_id,
+                NotificationPreference.category == data.category,
             )
         )
         pref = result.scalars().first()
@@ -177,9 +164,7 @@ class CommunicationsService:
             )
             self._session.add(pref)
         else:
-            update_data = data.model_dump(
-                exclude_unset=True
-            )
+            update_data = data.model_dump(exclude_unset=True)
             for field, value in update_data.items():
                 setattr(pref, field, value)
 
@@ -194,15 +179,10 @@ class CommunicationsService:
     ) -> list[EmailTemplateResponse]:
         """List all email templates for tenant."""
         result = await self._session.execute(
-            select(EmailTemplate).where(
-                EmailTemplate.tenant_id == tenant_id
-            )
+            select(EmailTemplate).where(EmailTemplate.tenant_id == tenant_id)
         )
         templates = result.scalars().all()
-        return [
-            self._to_email_template(t)
-            for t in templates
-        ]
+        return [self._to_email_template(t) for t in templates]
 
     async def create_email_template(
         self,
@@ -243,9 +223,7 @@ class CommunicationsService:
         if template is None:
             return None
 
-        update_data = data.model_dump(
-            exclude_unset=True
-        )
+        update_data = data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(template, field, value)
 
@@ -301,35 +279,23 @@ class CommunicationsService:
             CommunicationLog.tenant_id == tenant_id
         )
         if channel:
-            base = base.where(
-                CommunicationLog.channel == channel
-            )
+            base = base.where(CommunicationLog.channel == channel)
         if status_filter:
-            base = base.where(
-                CommunicationLog.status == status_filter
-            )
+            base = base.where(CommunicationLog.status == status_filter)
 
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
-        total = (
-            await self._session.execute(count_q)
-        ).scalar() or 0
+        count_q = select(func.count()).select_from(base.subquery())
+        total = (await self._session.execute(count_q)).scalar() or 0
 
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            base.order_by(
-                CommunicationLog.created_at.desc()
-            )
+            base.order_by(CommunicationLog.created_at.desc())
             .offset(offset)
             .limit(page_size)
         )
         logs = result.scalars().all()
 
         return CommLogListResponse(
-            items=[
-                self._to_comm_log(lg) for lg in logs
-            ],
+            items=[self._to_comm_log(lg) for lg in logs],
             total=total,
             page=page,
             page_size=page_size,

@@ -64,9 +64,7 @@ class SortOrder(str, Enum):
 class AlertResolveRequest(BaseModel):
     """Resolve an alert with notes."""
 
-    notes: str | None = Field(
-        None, max_length=2000
-    )
+    notes: str | None = Field(None, max_length=2000)
 
 
 # -- Alert Rule Requests --------------------------------------------
@@ -85,9 +83,7 @@ class AlertRuleCreate(BaseModel):
 class AlertRuleUpdate(BaseModel):
     """Update an alert rule — all fields optional."""
 
-    name: str | None = Field(
-        None, min_length=1, max_length=255
-    )
+    name: str | None = Field(None, min_length=1, max_length=255)
     description: str | None = None
     conditions: dict[str, Any] | None = None
     actions: dict[str, Any] | None = None
@@ -118,9 +114,7 @@ class AlertFilterParams(BaseModel):
             "title",
         }
         if value not in allowed:
-            raise ValueError(
-                f"sort_by must be one of {allowed}"
-            )
+            raise ValueError(f"sort_by must be one of {allowed}")
         return value
 
 

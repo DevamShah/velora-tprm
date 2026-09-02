@@ -43,9 +43,7 @@ from app.modules.assessments.service import (
 
 logger = get_logger(__name__)
 
-router = APIRouter(
-    prefix="/assessments", tags=["assessments"]
-)
+router = APIRouter(prefix="/assessments", tags=["assessments"])
 
 
 # -- List Templates -------------------------------------------------
@@ -54,21 +52,15 @@ router = APIRouter(
 @router.get(
     "/templates",
     response_model=list[AssessmentTemplateResponse],
-    dependencies=[
-        Depends(require_permission("assessments.read"))
-    ],
+    dependencies=[Depends(require_permission("assessments.read"))],
 )
 async def list_templates(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[AssessmentTemplateResponse]:
     """List available assessment templates."""
     service = AssessmentService(session)
-    return await service.list_templates(
-        current_user["tenant_id"]
-    )
+    return await service.list_templates(current_user["tenant_id"])
 
 
 # -- Create Template ------------------------------------------------
@@ -78,24 +70,16 @@ async def list_templates(
     "/templates",
     response_model=AssessmentTemplateResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(
-            require_permission("assessments.manage")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.manage"))],
 )
 async def create_template(
     body: AssessmentTemplateCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentTemplateResponse:
     """Create a new assessment template."""
     service = AssessmentService(session)
-    return await service.create_template(
-        current_user["tenant_id"], body
-    )
+    return await service.create_template(current_user["tenant_id"], body)
 
 
 # -- Review Queue ---------------------------------------------------
@@ -104,21 +88,15 @@ async def create_template(
 @router.get(
     "/review-queue",
     response_model=ReviewQueueResponse,
-    dependencies=[
-        Depends(require_permission("assessments.read"))
-    ],
+    dependencies=[Depends(require_permission("assessments.read"))],
 )
 async def get_review_queue(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ReviewQueueResponse:
     """Get responses needing human review."""
     service = AssessmentService(session)
-    return await service.get_review_queue(
-        current_user["tenant_id"]
-    )
+    return await service.get_review_queue(current_user["tenant_id"])
 
 
 # -- List Assessments -----------------------------------------------
@@ -127,23 +105,15 @@ async def get_review_queue(
 @router.get(
     "",
     response_model=AssessmentListResponse,
-    dependencies=[
-        Depends(require_permission("assessments.read"))
-    ],
+    dependencies=[Depends(require_permission("assessments.read"))],
 )
 async def list_assessments(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
-    status_filter: str | None = Query(
-        None, alias="status"
-    ),
+    current_user: Annotated[dict, Depends(get_current_user)],
+    status_filter: str | None = Query(None, alias="status"),
     vendor_id: uuid.UUID | None = Query(None),
     template_id: uuid.UUID | None = Query(None),
-    search: str | None = Query(
-        None, max_length=255
-    ),
+    search: str | None = Query(None, max_length=255),
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
     page: int = Query(1, ge=1),
@@ -161,9 +131,7 @@ async def list_assessments(
         page_size=page_size,
     )
     service = AssessmentService(session)
-    return await service.list_assessments(
-        current_user["tenant_id"], filters
-    )
+    return await service.list_assessments(current_user["tenant_id"], filters)
 
 
 # -- Create Assessment ----------------------------------------------
@@ -173,28 +141,22 @@ async def list_assessments(
     "",
     response_model=AssessmentResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_permission("assessments.write"))
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def create_assessment(
     body: AssessmentCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentResponse:
     """Create a new assessment from a template."""
     service = AssessmentService(session)
     try:
-        return await service.create_assessment(
-            current_user["tenant_id"], body
-        )
+        return await service.create_assessment(current_user["tenant_id"], body)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
-        )
+        ) from exc
 
 
 # -- Get Assessment Detail ------------------------------------------
@@ -203,16 +165,12 @@ async def create_assessment(
 @router.get(
     "/{assessment_id}",
     response_model=AssessmentDetailResponse,
-    dependencies=[
-        Depends(require_permission("assessments.read"))
-    ],
+    dependencies=[Depends(require_permission("assessments.read"))],
 )
 async def get_assessment(
     assessment_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentDetailResponse:
     """Fetch full assessment detail with responses."""
     service = AssessmentService(session)
@@ -233,17 +191,13 @@ async def get_assessment(
 @router.put(
     "/{assessment_id}",
     response_model=AssessmentResponse,
-    dependencies=[
-        Depends(require_permission("assessments.write"))
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def update_assessment(
     assessment_id: uuid.UUID,
     body: AssessmentUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentResponse:
     """Update assessment metadata."""
     service = AssessmentService(session)
@@ -266,18 +220,12 @@ async def update_assessment(
 @router.post(
     "/{assessment_id}/distribute",
     response_model=AssessmentResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.manage")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.manage"))],
 )
 async def distribute_assessment(
     assessment_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentResponse:
     """Distribute assessment to vendor."""
     service = AssessmentService(session)
@@ -289,7 +237,7 @@ async def distribute_assessment(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
-        )
+        ) from exc
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -304,16 +252,12 @@ async def distribute_assessment(
 @router.post(
     "/{assessment_id}/submit",
     response_model=AssessmentResponse,
-    dependencies=[
-        Depends(require_permission("assessments.write"))
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def submit_assessment(
     assessment_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentResponse:
     """Submit assessment for review."""
     service = AssessmentService(session)
@@ -325,7 +269,7 @@ async def submit_assessment(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
-        )
+        ) from exc
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -340,18 +284,12 @@ async def submit_assessment(
 @router.post(
     "/{assessment_id}/start-review",
     response_model=AssessmentResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.manage")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.manage"))],
 )
 async def start_review(
     assessment_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentResponse:
     """Assign current user as reviewer."""
     service = AssessmentService(session)
@@ -365,7 +303,7 @@ async def start_review(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
-        )
+        ) from exc
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -380,18 +318,12 @@ async def start_review(
 @router.post(
     "/{assessment_id}/complete",
     response_model=AssessmentResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.manage")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.manage"))],
 )
 async def complete_assessment(
     assessment_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentResponse:
     """Complete assessment with final scoring."""
     service = AssessmentService(session)
@@ -403,7 +335,7 @@ async def complete_assessment(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
-        )
+        ) from exc
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -418,18 +350,12 @@ async def complete_assessment(
 @router.post(
     "/{assessment_id}/cancel",
     response_model=AssessmentResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.manage")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.manage"))],
 )
 async def cancel_assessment(
     assessment_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AssessmentResponse:
     """Cancel an assessment."""
     service = AssessmentService(session)
@@ -441,7 +367,7 @@ async def cancel_assessment(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
-        )
+        ) from exc
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -456,16 +382,12 @@ async def cancel_assessment(
 @router.get(
     "/{assessment_id}/responses",
     response_model=list[QuestionnaireResponseItem],
-    dependencies=[
-        Depends(require_permission("assessments.read"))
-    ],
+    dependencies=[Depends(require_permission("assessments.read"))],
 )
 async def get_responses(
     assessment_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[QuestionnaireResponseItem]:
     """Get all responses for an assessment."""
     service = AssessmentService(session)
@@ -486,18 +408,14 @@ async def get_responses(
 @router.put(
     "/{assessment_id}/responses/{response_id}",
     response_model=QuestionnaireResponseItem,
-    dependencies=[
-        Depends(require_permission("assessments.write"))
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def update_response(
     assessment_id: uuid.UUID,
     response_id: uuid.UUID,
     body: QuestionnaireResponseUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> QuestionnaireResponseItem:
     """Update or review a questionnaire response."""
     service = AssessmentService(session)

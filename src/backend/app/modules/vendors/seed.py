@@ -297,12 +297,8 @@ async def _seed_single_vendor(
     vendor = Vendor(tenant_id=tenant_id, **vendor_def)
 
     if email:
-        vendor.primary_contact_email_encrypted = (
-            encryptor.encrypt(email)
-        )
-        vendor.primary_contact_email_hash = (
-            encryptor.hmac_hash(email)
-        )
+        vendor.primary_contact_email_encrypted = encryptor.encrypt(email)
+        vendor.primary_contact_email_hash = encryptor.hmac_hash(email)
 
     session.add(vendor)
     await session.flush()
@@ -317,9 +313,7 @@ async def seed_vendors(session: AsyncSession) -> int:
 
     for vendor_def in VENDOR_SEEDS:
         data = dict(vendor_def)
-        if await _seed_single_vendor(
-            session, DEMO_TENANT_ID, encryptor, data
-        ):
+        if await _seed_single_vendor(session, DEMO_TENANT_ID, encryptor, data):
             created += 1
             logger.info(
                 "seed_vendor_created",

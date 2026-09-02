@@ -193,8 +193,7 @@ SIG_CORE_QUESTIONS: list[dict] = [
         "section": "Data Protection",
         "subsection": "Transit",
         "question_text": (
-            "Is all data in transit protected using "
-            "TLS 1.2 or higher?"
+            "Is all data in transit protected using TLS 1.2 or higher?"
         ),
         "question_type": "yes_no",
         "risk_domain": "data_protection",
@@ -205,8 +204,7 @@ SIG_CORE_QUESTIONS: list[dict] = [
         "section": "Data Protection",
         "subsection": "Retention",
         "question_text": (
-            "Do you have a documented data retention "
-            "and destruction policy?"
+            "Do you have a documented data retention and destruction policy?"
         ),
         "question_type": "yes_no",
         "risk_domain": "data_protection",
@@ -230,8 +228,7 @@ SIG_CORE_QUESTIONS: list[dict] = [
         "section": "Business Continuity",
         "subsection": "Disaster Recovery",
         "question_text": (
-            "What is your Recovery Time Objective "
-            "(RTO) for critical systems?"
+            "What is your Recovery Time Objective (RTO) for critical systems?"
         ),
         "question_type": "multiple_choice",
         "options": {
@@ -322,8 +319,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     {
         "section": "Information Security",
         "question_text": (
-            "Are security policies reviewed and "
-            "updated at least annually?"
+            "Are security policies reviewed and updated at least annually?"
         ),
         "question_type": "yes_no",
         "risk_domain": "information_security",
@@ -333,8 +329,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     {
         "section": "Access Control",
         "question_text": (
-            "Is multi-factor authentication available "
-            "for your platform?"
+            "Is multi-factor authentication available for your platform?"
         ),
         "question_type": "yes_no",
         "risk_domain": "access_control",
@@ -343,9 +338,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     },
     {
         "section": "Access Control",
-        "question_text": (
-            "Do you perform regular access reviews?"
-        ),
+        "question_text": ("Do you perform regular access reviews?"),
         "question_type": "yes_no",
         "risk_domain": "access_control",
         "weight": 1.0,
@@ -353,9 +346,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     },
     {
         "section": "Data Protection",
-        "question_text": (
-            "Is data encrypted at rest and in transit?"
-        ),
+        "question_text": ("Is data encrypted at rest and in transit?"),
         "question_type": "yes_no",
         "risk_domain": "data_protection",
         "weight": 1.5,
@@ -363,9 +354,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     },
     {
         "section": "Data Protection",
-        "question_text": (
-            "Do you have a data classification scheme?"
-        ),
+        "question_text": ("Do you have a data classification scheme?"),
         "question_type": "yes_no",
         "risk_domain": "data_protection",
         "weight": 1.0,
@@ -373,9 +362,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     },
     {
         "section": "Business Continuity",
-        "question_text": (
-            "Do you have a business continuity plan?"
-        ),
+        "question_text": ("Do you have a business continuity plan?"),
         "question_type": "yes_no",
         "risk_domain": "business_continuity",
         "weight": 1.0,
@@ -383,9 +370,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     },
     {
         "section": "Business Continuity",
-        "question_text": (
-            "What is your guaranteed uptime SLA?"
-        ),
+        "question_text": ("What is your guaranteed uptime SLA?"),
         "question_type": "text",
         "risk_domain": "business_continuity",
         "weight": 1.0,
@@ -393,9 +378,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     },
     {
         "section": "Incident Response",
-        "question_text": (
-            "Do you have an incident response process?"
-        ),
+        "question_text": ("Do you have an incident response process?"),
         "question_type": "yes_no",
         "risk_domain": "incident_response",
         "weight": 1.2,
@@ -404,8 +387,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
     {
         "section": "Incident Response",
         "question_text": (
-            "Will you notify us within 72 hours of "
-            "a security breach?"
+            "Will you notify us within 72 hours of a security breach?"
         ),
         "question_type": "yes_no",
         "risk_domain": "incident_response",
@@ -417,9 +399,7 @@ SIG_LITE_QUESTIONS: list[dict] = [
 CUSTOM_QUESTIONS: list[dict] = [
     {
         "section": "Information Security",
-        "question_text": (
-            "Do you have a security policy in place?"
-        ),
+        "question_text": ("Do you have a security policy in place?"),
         "question_type": "yes_no",
         "risk_domain": "information_security",
         "weight": 1.0,
@@ -428,8 +408,7 @@ CUSTOM_QUESTIONS: list[dict] = [
     {
         "section": "Information Security",
         "question_text": (
-            "Have you completed a SOC 2 Type II "
-            "or equivalent audit?"
+            "Have you completed a SOC 2 Type II or equivalent audit?"
         ),
         "question_type": "yes_no",
         "risk_domain": "information_security",
@@ -438,9 +417,7 @@ CUSTOM_QUESTIONS: list[dict] = [
     },
     {
         "section": "Access Control",
-        "question_text": (
-            "Do you support single sign-on (SSO)?"
-        ),
+        "question_text": ("Do you support single sign-on (SSO)?"),
         "question_type": "yes_no",
         "risk_domain": "access_control",
         "weight": 1.0,
@@ -448,10 +425,7 @@ CUSTOM_QUESTIONS: list[dict] = [
     },
     {
         "section": "Data Protection",
-        "question_text": (
-            "Where is customer data stored "
-            "geographically?"
-        ),
+        "question_text": ("Where is customer data stored geographically?"),
         "question_type": "text",
         "risk_domain": "data_protection",
         "weight": 1.0,
@@ -459,9 +433,7 @@ CUSTOM_QUESTIONS: list[dict] = [
     },
     {
         "section": "Data Protection",
-        "question_text": (
-            "Is customer data encrypted at rest?"
-        ),
+        "question_text": ("Is customer data encrypted at rest?"),
         "question_type": "yes_no",
         "risk_domain": "data_protection",
         "weight": 1.0,
@@ -470,8 +442,7 @@ CUSTOM_QUESTIONS: list[dict] = [
     {
         "section": "Data Protection",
         "question_text": (
-            "Can you provide a data processing "
-            "agreement (DPA)?"
+            "Can you provide a data processing agreement (DPA)?"
         ),
         "question_type": "yes_no",
         "risk_domain": "data_protection",
@@ -480,9 +451,7 @@ CUSTOM_QUESTIONS: list[dict] = [
     },
     {
         "section": "Business Continuity",
-        "question_text": (
-            "What is your target uptime percentage?"
-        ),
+        "question_text": ("What is your target uptime percentage?"),
         "question_type": "text",
         "risk_domain": "business_continuity",
         "weight": 1.0,
@@ -491,8 +460,7 @@ CUSTOM_QUESTIONS: list[dict] = [
     {
         "section": "Incident Response",
         "question_text": (
-            "How do you handle security incident "
-            "notifications to customers?"
+            "How do you handle security incident notifications to customers?"
         ),
         "question_type": "text",
         "risk_domain": "incident_response",
@@ -527,8 +495,7 @@ DEMO_ASSESSMENTS: list[dict] = [
         "title": "Salesforce CRM Security Review",
         "status": "submitted",
         "description": (
-            "Security assessment for Salesforce CRM "
-            "platform renewal."
+            "Security assessment for Salesforce CRM platform renewal."
         ),
     },
     {
@@ -537,8 +504,7 @@ DEMO_ASSESSMENTS: list[dict] = [
         "title": "Zoom Communications Review",
         "status": "draft",
         "description": (
-            "Periodic assessment of Zoom video "
-            "conferencing platform."
+            "Periodic assessment of Zoom video conferencing platform."
         ),
     },
     {
@@ -548,8 +514,7 @@ DEMO_ASSESSMENTS: list[dict] = [
         "status": "completed",
         "overall_score": 87.3,
         "description": (
-            "Identity provider security assessment "
-            "for contract renewal."
+            "Identity provider security assessment for contract renewal."
         ),
     },
     {
@@ -558,8 +523,7 @@ DEMO_ASSESSMENTS: list[dict] = [
         "title": "Calendly Quick Security Check",
         "status": "distributed",
         "description": (
-            "Lightweight security review for low-tier "
-            "scheduling tool."
+            "Lightweight security review for low-tier scheduling tool."
         ),
     },
 ]
@@ -584,20 +548,14 @@ async def _seed_template(
     if existing is not None:
         return existing
 
-    questions = TEMPLATE_QUESTIONS_MAP.get(
-        template_def["name"], []
-    )
+    questions = TEMPLATE_QUESTIONS_MAP.get(template_def["name"], [])
     template = AssessmentTemplate(
         tenant_id=tenant_id,
         name=template_def["name"],
         description=template_def.get("description"),
-        tier_applicability=template_def.get(
-            "tier_applicability"
-        ),
+        tier_applicability=template_def.get("tier_applicability"),
         is_system=template_def.get("is_system", True),
-        scoring_weights=template_def.get(
-            "scoring_weights"
-        ),
+        scoring_weights=template_def.get("scoring_weights"),
         question_count=len(questions),
         estimated_duration_minutes=template_def.get(
             "estimated_duration_minutes"
@@ -605,9 +563,7 @@ async def _seed_template(
     )
     session.add(template)
     await session.flush()
-    logger.info(
-        "seed_template_created", name=template.name
-    )
+    logger.info("seed_template_created", name=template.name)
     return template
 
 
@@ -638,9 +594,7 @@ async def _seed_questions(
             section=q_def.get("section"),
             subsection=q_def.get("subsection"),
             question_text=q_def["question_text"],
-            question_type=q_def.get(
-                "question_type", "text"
-            ),
+            question_type=q_def.get("question_type", "text"),
             options=q_def.get("options"),
             is_required=q_def.get("is_required", True),
             weight=q_def.get("weight", 1.0),
@@ -701,9 +655,7 @@ async def _seed_assessment(
         )
         return False
 
-    template = template_map.get(
-        assessment_def["template_name"]
-    )
+    template = template_map.get(assessment_def["template_name"])
     if template is None:
         return False
 
@@ -761,18 +713,12 @@ async def seed_assessments(
     # 1. Seed templates
     template_map: dict[str, AssessmentTemplate] = {}
     for template_def in TEMPLATE_SEEDS:
-        template = await _seed_template(
-            session, tenant_id, template_def
-        )
+        template = await _seed_template(session, tenant_id, template_def)
         template_map[template.name] = template
 
         # 2. Seed questions per template
-        questions_def = TEMPLATE_QUESTIONS_MAP.get(
-            template.name, []
-        )
-        await _seed_questions(
-            session, tenant_id, template, questions_def
-        )
+        questions_def = TEMPLATE_QUESTIONS_MAP.get(template.name, [])
+        await _seed_questions(session, tenant_id, template, questions_def)
 
     # 3. Seed demo assessments
     for assessment_def in DEMO_ASSESSMENTS:
@@ -785,7 +731,5 @@ async def seed_assessments(
             created += 1
 
     await session.commit()
-    logger.info(
-        "assessment_seed_complete", created=created
-    )
+    logger.info("assessment_seed_complete", created=created)
     return created

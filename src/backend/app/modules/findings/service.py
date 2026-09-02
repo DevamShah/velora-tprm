@@ -50,36 +50,20 @@ class FindingsService:
         page_size: int = 20,
     ) -> FindingListResponse:
         """List findings with filters and pagination."""
-        base = select(Finding).where(
-            Finding.tenant_id == tenant_id
-        )
+        base = select(Finding).where(Finding.tenant_id == tenant_id)
         if vendor_id:
-            base = base.where(
-                Finding.vendor_id == vendor_id
-            )
+            base = base.where(Finding.vendor_id == vendor_id)
         if severity:
-            base = base.where(
-                Finding.severity == severity
-            )
+            base = base.where(Finding.severity == severity)
         if status:
-            base = base.where(
-                Finding.status == status
-            )
+            base = base.where(Finding.status == status)
 
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
-        total = (
-            await self._session.execute(count_q)
-        ).scalar() or 0
+        count_q = select(func.count()).select_from(base.subquery())
+        total = (await self._session.execute(count_q)).scalar() or 0
 
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            base.options(
-                selectinload(
-                    Finding.remediation_actions
-                )
-            )
+            base.options(selectinload(Finding.remediation_actions))
             .order_by(Finding.created_at.desc())
             .offset(offset)
             .limit(page_size)
@@ -87,9 +71,7 @@ class FindingsService:
         findings = result.scalars().all()
 
         return FindingListResponse(
-            items=[
-                self._to_response(f) for f in findings
-            ],
+            items=[self._to_response(f) for f in findings],
             total=total,
             page=page,
             page_size=page_size,
@@ -105,11 +87,7 @@ class FindingsService:
         """Fetch a single finding with remediation."""
         result = await self._session.execute(
             select(Finding)
-            .options(
-                selectinload(
-                    Finding.remediation_actions
-                )
-            )
+            .options(selectinload(Finding.remediation_actions))
             .where(
                 Finding.id == finding_id,
                 Finding.tenant_id == tenant_id,
@@ -158,18 +136,15 @@ class FindingsService:
         data: FindingUpdate,
     ) -> FindingResponse | None:
         """Update a finding."""
-        finding = await self._get_finding(
-            tenant_id, finding_id
-        )
+        finding = await self._get_finding(tenant_id, finding_id)
         if finding is None:
             return None
 
-        update_data = data.model_dump(
-            exclude_unset=True
-        )
-        for field, value in update_data.items():
-            if hasattr(value, "value"):
-                value = value.value
+        update_data = data.model_dump(exclude_unset=True)
+        for field, raw_value in update_data.items():
+            value = (
+                raw_value.value if hasattr(raw_value, "value") else raw_value
+            )
             setattr(finding, field, value)
 
         await self._session.flush()
@@ -188,9 +163,7 @@ class FindingsService:
         data: FindingClose,
     ) -> FindingResponse | None:
         """Close a finding with a final status."""
-        finding = await self._get_finding(
-            tenant_id, finding_id
-        )
+        finding = await self._get_finding(tenant_id, finding_id)
         if finding is None:
             return None
 
@@ -213,9 +186,7 @@ class FindingsService:
         data: RemediationCreate,
     ) -> RemediationResponse | None:
         """Add a remediation action to a finding."""
-        finding = await self._get_finding(
-            tenant_id, finding_id
-        )
+        finding = await self._get_finding(tenant_id, finding_id)
         if finding is None:
             return None
 
@@ -249,28 +220,23 @@ class FindingsService:
         result = await self._session.execute(
             select(RemediationAction).where(
                 RemediationAction.id == action_id,
-                RemediationAction.finding_id
-                == finding_id,
-                RemediationAction.tenant_id
-                == tenant_id,
+                RemediationAction.finding_id == finding_id,
+                RemediationAction.tenant_id == tenant_id,
             )
         )
         action = result.scalars().first()
         if action is None:
             return None
 
-        update_data = data.model_dump(
-            exclude_unset=True
-        )
-        for field, value in update_data.items():
-            if hasattr(value, "value"):
-                value = value.value
+        update_data = data.model_dump(exclude_unset=True)
+        for field, raw_value in update_data.items():
+            value = (
+                raw_value.value if hasattr(raw_value, "value") else raw_value
+            )
             setattr(action, field, value)
 
         if action.status == "completed":
-            action.completed_at = datetime.now(
-                UTC
-            )
+            action.completed_at = datetime.now(UTC)
 
         await self._session.flush()
         logger.info(
@@ -289,11 +255,7 @@ class FindingsService:
         """Fetch finding or return None."""
         result = await self._session.execute(
             select(Finding)
-            .options(
-                selectinload(
-                    Finding.remediation_actions
-                )
-            )
+            .options(selectinload(Finding.remediation_actions))
             .where(
                 Finding.id == finding_id,
                 Finding.tenant_id == tenant_id,
@@ -310,12 +272,14 @@ class FindingsService:
         try:
             actions = [
                 FindingsService._to_remediation(a)
-                for a in (
-                    finding.remediation_actions or []
-                )
+                for a in (finding.remediation_actions or [])
             ]
         except Exception:
-            pass
+            logger.warning(
+                "findings.remediation_actions_unavailable",
+                finding_id=str(finding.id),
+                exc_info=True,
+            )
 
         return FindingResponse(
             id=finding.id,

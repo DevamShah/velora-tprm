@@ -36,10 +36,10 @@ class TokenResponse(BaseModel):
 
     access_token: str
     refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int = Field(
-        description="Access token lifetime in seconds"
-    )
+    # "bearer" is the OAuth 2.0 token_type value (RFC 6750 s.4),
+    # not a credential — hence the suppression below.
+    token_type: str = "bearer"  # noqa: S105
+    expires_in: int = Field(description="Access token lifetime in seconds")
 
 
 class RoleResponse(BaseModel):

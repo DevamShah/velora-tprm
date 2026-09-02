@@ -35,30 +35,18 @@ class Vendor(TenantBase):
 
     __tablename__ = "vendors"
 
-    name: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
-    domain: Mapped[str | None] = mapped_column(
-        String(255), nullable=True
-    )
-    description: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    domain: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="discovered"
     )
     tier: Mapped[str] = mapped_column(
         String(50), nullable=False, default="unclassified"
     )
-    industry: Mapped[str | None] = mapped_column(
-        String(255), nullable=True
-    )
-    country: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
-    employee_count: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
-    )
+    industry: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    employee_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     annual_revenue: Mapped[Decimal | None] = mapped_column(
         Numeric(18, 2), nullable=True
     )
@@ -71,27 +59,23 @@ class Vendor(TenantBase):
     contract_start_date: Mapped[date | None] = mapped_column(
         Date, nullable=True
     )
-    contract_end_date: Mapped[date | None] = mapped_column(
-        Date, nullable=True
-    )
+    contract_end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     contract_value: Mapped[Decimal | None] = mapped_column(
         Numeric(18, 2), nullable=True
     )
     primary_contact_name: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
-    primary_contact_email_encrypted: Mapped[str | None] = (
-        mapped_column(Text, nullable=True)
+    primary_contact_email_encrypted: Mapped[str | None] = mapped_column(
+        Text, nullable=True
     )
-    primary_contact_email_hash: Mapped[str | None] = (
-        mapped_column(String(64), nullable=True)
+    primary_contact_email_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
     )
     tags: Mapped[list[str] | None] = mapped_column(
         ARRAY(Text), nullable=True, default=list
     )
-    notes: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     inherent_risk_score: Mapped[float | None] = mapped_column(
         Float, nullable=True
     )
@@ -138,27 +122,13 @@ class VendorContact(TenantBase):
         nullable=False,
         index=True,
     )
-    first_name: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    last_name: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    email_encrypted: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
-    email_hash: Mapped[str | None] = mapped_column(
-        String(64), nullable=True
-    )
-    phone_encrypted: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
-    phone_hash: Mapped[str | None] = mapped_column(
-        String(64), nullable=True
-    )
-    role: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
+    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    email_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    email_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    phone_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    phone_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    role: Mapped[str | None] = mapped_column(String(100), nullable=True)
     is_primary: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
@@ -167,9 +137,7 @@ class VendorContact(TenantBase):
     )
 
     # Relationships
-    vendor: Mapped[Vendor] = relationship(
-        back_populates="contacts"
-    )
+    vendor: Mapped[Vendor] = relationship(back_populates="contacts")
 
 
 class VendorTag(TenantBase):
@@ -183,12 +151,8 @@ class VendorTag(TenantBase):
         ),
     )
 
-    name: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    color: Mapped[str | None] = mapped_column(
-        String(7), nullable=True
-    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    color: Mapped[str | None] = mapped_column(String(7), nullable=True)
 
 
 class VendorEnrichment(TenantBase):
@@ -202,15 +166,9 @@ class VendorEnrichment(TenantBase):
         nullable=False,
         index=True,
     )
-    source: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    data: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True
-    )
-    confidence: Mapped[float | None] = mapped_column(
-        Float, nullable=True
-    )
+    source: Mapped[str] = mapped_column(String(100), nullable=False)
+    data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_current: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
@@ -219,6 +177,4 @@ class VendorEnrichment(TenantBase):
     )
 
     # Relationships
-    vendor: Mapped[Vendor] = relationship(
-        back_populates="enrichments"
-    )
+    vendor: Mapped[Vendor] = relationship(back_populates="enrichments")

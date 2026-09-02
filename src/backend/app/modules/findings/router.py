@@ -38,9 +38,7 @@ from app.modules.findings.service import FindingsService
 
 logger = get_logger(__name__)
 
-router = APIRouter(
-    prefix="/findings", tags=["findings"]
-)
+router = APIRouter(prefix="/findings", tags=["findings"])
 
 
 # -- List Findings --------------------------------------------------
@@ -49,22 +47,14 @@ router = APIRouter(
 @router.get(
     "",
     response_model=FindingListResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.read")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.read"))],
 )
 async def list_findings(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
     vendor_id: uuid.UUID | None = Query(None),
     severity: str | None = Query(None),
-    status_filter: str | None = Query(
-        None, alias="status"
-    ),
+    status_filter: str | None = Query(None, alias="status"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> FindingListResponse:
@@ -87,24 +77,16 @@ async def list_findings(
     "",
     response_model=FindingResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(
-            require_permission("assessments.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def create_finding(
     body: FindingCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> FindingResponse:
     """Create a new finding."""
     service = FindingsService(session)
-    return await service.create_finding(
-        current_user["tenant_id"], body
-    )
+    return await service.create_finding(current_user["tenant_id"], body)
 
 
 # -- Get Finding ----------------------------------------------------
@@ -113,24 +95,16 @@ async def create_finding(
 @router.get(
     "/{finding_id}",
     response_model=FindingResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.read")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.read"))],
 )
 async def get_finding(
     finding_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> FindingResponse:
     """Fetch a single finding with remediation actions."""
     service = FindingsService(session)
-    result = await service.get_finding(
-        current_user["tenant_id"], finding_id
-    )
+    result = await service.get_finding(current_user["tenant_id"], finding_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -145,19 +119,13 @@ async def get_finding(
 @router.put(
     "/{finding_id}",
     response_model=FindingResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def update_finding(
     finding_id: uuid.UUID,
     body: FindingUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> FindingResponse:
     """Update a finding."""
     service = FindingsService(session)
@@ -178,19 +146,13 @@ async def update_finding(
 @router.post(
     "/{finding_id}/close",
     response_model=FindingResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def close_finding(
     finding_id: uuid.UUID,
     body: FindingClose,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> FindingResponse:
     """Close a finding with a final status."""
     service = FindingsService(session)
@@ -212,19 +174,13 @@ async def close_finding(
     "/{finding_id}/remediation",
     response_model=RemediationResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(
-            require_permission("assessments.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def add_remediation(
     finding_id: uuid.UUID,
     body: RemediationCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> RemediationResponse:
     """Add a remediation action to a finding."""
     service = FindingsService(session)
@@ -245,20 +201,14 @@ async def add_remediation(
 @router.put(
     "/{finding_id}/remediation/{action_id}",
     response_model=RemediationResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def update_remediation(
     finding_id: uuid.UUID,
     action_id: uuid.UUID,
     body: RemediationUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> RemediationResponse:
     """Update a remediation action."""
     service = FindingsService(session)

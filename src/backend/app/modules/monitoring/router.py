@@ -40,9 +40,7 @@ from app.modules.monitoring.service import (
 
 logger = get_logger(__name__)
 
-router = APIRouter(
-    prefix="/monitoring", tags=["monitoring"]
-)
+router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 
 
 # -- List Alerts ----------------------------------------------------
@@ -51,21 +49,13 @@ router = APIRouter(
 @router.get(
     "/alerts",
     response_model=AlertListResponse,
-    dependencies=[
-        Depends(
-            require_permission("monitoring.read")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.read"))],
 )
 async def list_alerts(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
     priority: str | None = Query(None),
-    status_filter: str | None = Query(
-        None, alias="status"
-    ),
+    status_filter: str | None = Query(None, alias="status"),
     vendor_id: uuid.UUID | None = Query(None),
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
@@ -83,9 +73,7 @@ async def list_alerts(
         page_size=page_size,
     )
     service = MonitoringService(session)
-    return await service.list_alerts(
-        current_user["tenant_id"], filters
-    )
+    return await service.list_alerts(current_user["tenant_id"], filters)
 
 
 # -- Get Alert ------------------------------------------------------
@@ -94,24 +82,16 @@ async def list_alerts(
 @router.get(
     "/alerts/{alert_id}",
     response_model=AlertResponse,
-    dependencies=[
-        Depends(
-            require_permission("monitoring.read")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.read"))],
 )
 async def get_alert(
     alert_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AlertResponse:
     """Fetch a single alert detail."""
     service = MonitoringService(session)
-    result = await service.get_alert(
-        current_user["tenant_id"], alert_id
-    )
+    result = await service.get_alert(current_user["tenant_id"], alert_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -126,18 +106,12 @@ async def get_alert(
 @router.put(
     "/alerts/{alert_id}/acknowledge",
     response_model=AlertResponse,
-    dependencies=[
-        Depends(
-            require_permission("monitoring.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.write"))],
 )
 async def acknowledge_alert(
     alert_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AlertResponse:
     """Acknowledge an alert."""
     service = MonitoringService(session)
@@ -160,19 +134,13 @@ async def acknowledge_alert(
 @router.put(
     "/alerts/{alert_id}/resolve",
     response_model=AlertResponse,
-    dependencies=[
-        Depends(
-            require_permission("monitoring.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.write"))],
 )
 async def resolve_alert(
     alert_id: uuid.UUID,
     body: AlertResolveRequest,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AlertResponse:
     """Resolve an alert with optional notes."""
     service = MonitoringService(session)
@@ -196,24 +164,16 @@ async def resolve_alert(
 @router.put(
     "/alerts/{alert_id}/suppress",
     response_model=AlertResponse,
-    dependencies=[
-        Depends(
-            require_permission("monitoring.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.write"))],
 )
 async def suppress_alert(
     alert_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AlertResponse:
     """Suppress an alert."""
     service = MonitoringService(session)
-    result = await service.suppress_alert(
-        current_user["tenant_id"], alert_id
-    )
+    result = await service.suppress_alert(current_user["tenant_id"], alert_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -228,18 +188,12 @@ async def suppress_alert(
 @router.get(
     "/vendors/{vendor_id}/timeline",
     response_model=VendorTimelineResponse,
-    dependencies=[
-        Depends(
-            require_permission("monitoring.read")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.read"))],
 )
 async def get_vendor_timeline(
     vendor_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> VendorTimelineResponse:
     """Fetch chronological timeline for a vendor."""
     service = MonitoringService(session)
@@ -254,65 +208,43 @@ async def get_vendor_timeline(
 @router.get(
     "/alert-rules",
     response_model=list[AlertRuleResponse],
-    dependencies=[
-        Depends(
-            require_permission("monitoring.read")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.read"))],
 )
 async def list_alert_rules(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[AlertRuleResponse]:
     """List all alert rules."""
     service = MonitoringService(session)
-    return await service.list_alert_rules(
-        current_user["tenant_id"]
-    )
+    return await service.list_alert_rules(current_user["tenant_id"])
 
 
 @router.post(
     "/alert-rules",
     response_model=AlertRuleResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(
-            require_permission("monitoring.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.write"))],
 )
 async def create_alert_rule(
     body: AlertRuleCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AlertRuleResponse:
     """Create a new alert rule."""
     service = MonitoringService(session)
-    return await service.create_alert_rule(
-        current_user["tenant_id"], body
-    )
+    return await service.create_alert_rule(current_user["tenant_id"], body)
 
 
 @router.put(
     "/alert-rules/{rule_id}",
     response_model=AlertRuleResponse,
-    dependencies=[
-        Depends(
-            require_permission("monitoring.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("monitoring.write"))],
 )
 async def update_alert_rule(
     rule_id: uuid.UUID,
     body: AlertRuleUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AlertRuleResponse:
     """Update an alert rule."""
     service = MonitoringService(session)

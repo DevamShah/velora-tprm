@@ -42,28 +42,20 @@ class ScoringModelCreate(BaseModel):
     description: str | None = None
     method: ScoringMethod = ScoringMethod.weighted_average
     is_default: bool = False
-    dimensions: list[DimensionWeight] = Field(
-        min_length=1
-    )
-    inherent_risk_factors: dict[str, Any] | None = (
-        None
-    )
+    dimensions: list[DimensionWeight] = Field(min_length=1)
+    inherent_risk_factors: dict[str, Any] | None = None
     risk_thresholds: dict[str, float] | None = None
 
 
 class ScoringModelUpdate(BaseModel):
     """Update a scoring model — all fields optional."""
 
-    name: str | None = Field(
-        None, min_length=1, max_length=255
-    )
+    name: str | None = Field(None, min_length=1, max_length=255)
     description: str | None = None
     method: ScoringMethod | None = None
     is_default: bool | None = None
     dimensions: list[DimensionWeight] | None = None
-    inherent_risk_factors: dict[str, Any] | None = (
-        None
-    )
+    inherent_risk_factors: dict[str, Any] | None = None
     risk_thresholds: dict[str, float] | None = None
 
 
@@ -79,9 +71,7 @@ class ScoringModelResponse(BaseModel):
     method: str
     is_default: bool
     config: dict[str, Any] | None = None
-    inherent_risk_factors: dict[str, Any] | None = (
-        None
-    )
+    inherent_risk_factors: dict[str, Any] | None = None
     risk_thresholds: dict[str, Any] | None = None
     created_at: datetime
     updated_at: datetime
@@ -145,12 +135,8 @@ class BulkCalculateResponse(BaseModel):
 
     calculated: int = 0
     failed: int = 0
-    results: list[ScoreBreakdown] = Field(
-        default_factory=list
-    )
-    errors: list[dict[str, str]] = Field(
-        default_factory=list
-    )
+    results: list[ScoreBreakdown] = Field(default_factory=list)
+    errors: list[dict[str, str]] = Field(default_factory=list)
 
 
 # -- Portfolio Schemas ----------------------------------------------
@@ -174,6 +160,4 @@ class PortfolioSummary(BaseModel):
     tier_distribution: TierDistribution = Field(
         default_factory=TierDistribution
     )
-    risk_level_counts: dict[str, int] = Field(
-        default_factory=dict
-    )
+    risk_level_counts: dict[str, int] = Field(default_factory=dict)

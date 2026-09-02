@@ -28,12 +28,33 @@ select = [
     "RUF",  # ruff-specific
 ]
 ignore = [
-    "ANN101",  # missing self type annotation
-    "ANN102",  # missing cls type annotation
     "ANN401",  # dynamically typed Any
-    "S105",    # possible hardcoded password (false positives in tests)
-    "S106",    # same
+    # UP042 rewrites `class X(str, Enum)` to `class X(StrEnum)`. That is a
+    # behaviour change, not a modernisation: str(X.A) yields "X.A" under
+    # (str, Enum) but "a" under StrEnum. These enums cross the API and
+    # persistence boundary, so the rewrite is deliberately not taken.
+    # (str, Enum) remains fully supported on 3.12.
+    "UP042",
 ]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection idiom deliberately evaluates these in
+# argument defaults; the returned objects are inert markers, not shared
+# mutable state, so B008 does not apply to them.
+extend-immutable-calls = [
+    "fastapi.Body",
+    "fastapi.Depends",
+    "fastapi.File",
+    "fastapi.Form",
+    "fastapi.Header",
+    "fastapi.Path",
+    "fastapi.Query",
+    "fastapi.Security",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests legitimately use bare asserts and dummy credentials.
+"tests/**" = ["S101", "S105", "S106"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

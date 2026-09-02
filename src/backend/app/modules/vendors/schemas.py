@@ -92,20 +92,12 @@ class VendorCreate(BaseModel):
     contract_start_date: date | None = None
     contract_end_date: date | None = None
     contract_value: Decimal | None = Field(None, ge=0)
-    primary_contact_name: str | None = Field(
-        None, max_length=255
-    )
-    primary_contact_email: str | None = Field(
-        None, max_length=255
-    )
+    primary_contact_name: str | None = Field(None, max_length=255)
+    primary_contact_email: str | None = Field(None, max_length=255)
     tags: list[str] | None = None
     notes: str | None = None
-    inherent_risk_score: float | None = Field(
-        None, ge=0.0, le=100.0
-    )
-    residual_risk_score: float | None = Field(
-        None, ge=0.0, le=100.0
-    )
+    inherent_risk_score: float | None = Field(None, ge=0.0, le=100.0)
+    residual_risk_score: float | None = Field(None, ge=0.0, le=100.0)
 
 
 class VendorUpdate(BaseModel):
@@ -125,20 +117,12 @@ class VendorUpdate(BaseModel):
     contract_start_date: date | None = None
     contract_end_date: date | None = None
     contract_value: Decimal | None = Field(None, ge=0)
-    primary_contact_name: str | None = Field(
-        None, max_length=255
-    )
-    primary_contact_email: str | None = Field(
-        None, max_length=255
-    )
+    primary_contact_name: str | None = Field(None, max_length=255)
+    primary_contact_email: str | None = Field(None, max_length=255)
     tags: list[str] | None = None
     notes: str | None = None
-    inherent_risk_score: float | None = Field(
-        None, ge=0.0, le=100.0
-    )
-    residual_risk_score: float | None = Field(
-        None, ge=0.0, le=100.0
-    )
+    inherent_risk_score: float | None = Field(None, ge=0.0, le=100.0)
+    residual_risk_score: float | None = Field(None, ge=0.0, le=100.0)
 
 
 # ── Vendor Responses ───────────────────────────────────────
@@ -207,12 +191,8 @@ class VendorContactCreate(BaseModel):
 class VendorContactUpdate(BaseModel):
     """Update a vendor contact — all fields optional."""
 
-    first_name: str | None = Field(
-        None, min_length=1, max_length=100
-    )
-    last_name: str | None = Field(
-        None, min_length=1, max_length=100
-    )
+    first_name: str | None = Field(None, min_length=1, max_length=100)
+    last_name: str | None = Field(None, min_length=1, max_length=100)
     email: str | None = Field(None, max_length=255)
     phone: str | None = Field(None, max_length=50)
     role: str | None = Field(None, max_length=100)
@@ -353,7 +333,5 @@ class VendorFilterParams(BaseModel):
             "contract_value",
         }
         if value not in allowed:
-            raise ValueError(
-                f"sort_by must be one of {allowed}"
-            )
+            raise ValueError(f"sort_by must be one of {allowed}")
         return value

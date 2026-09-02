@@ -38,9 +38,7 @@ def hash_password(plain: str) -> str:
 
 def verify_password(plain: str, hashed: str) -> bool:
     """Verify a plaintext password against its bcrypt hash."""
-    return bcrypt.checkpw(
-        plain.encode("utf-8"), hashed.encode("utf-8")
-    )
+    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 
 # ---------------------------------------------------------------------------
@@ -56,9 +54,7 @@ def create_access_token(
 ) -> str:
     """Issue a short-lived JWT access token."""
     payload = data.copy()
-    expire = datetime.now(UTC) + timedelta(
-        minutes=expires_minutes
-    )
+    expire = datetime.now(UTC) + timedelta(minutes=expires_minutes)
     payload.update({"exp": expire, "type": "access"})
     return jwt.encode(payload, secret_key, algorithm=algorithm)
 
@@ -88,9 +84,7 @@ def verify_token(
     Returns the payload dict on success, None on any failure.
     """
     try:
-        payload = jwt.decode(
-            token, secret_key, algorithms=[algorithm]
-        )
+        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
         if payload.get("type") != expected_type:
             return None
         return payload
@@ -110,9 +104,7 @@ class FieldEncryptor:
     def __init__(self, key_b64: str) -> None:
         raw_key = base64.urlsafe_b64decode(key_b64)
         if len(raw_key) != 32:
-            raise ValueError(
-                "ENCRYPTION_KEY must decode to exactly 32 bytes"
-            )
+            raise ValueError("ENCRYPTION_KEY must decode to exactly 32 bytes")
         self._aesgcm = AESGCM(raw_key)
         self._hmac_key = raw_key  # reuse for HMAC lookups
 
@@ -122,18 +114,14 @@ class FieldEncryptor:
         ciphertext = self._aesgcm.encrypt(
             nonce, plaintext.encode("utf-8"), None
         )
-        return base64.urlsafe_b64encode(
-            nonce + ciphertext
-        ).decode("ascii")
+        return base64.urlsafe_b64encode(nonce + ciphertext).decode("ascii")
 
     def decrypt(self, token: str) -> str:
         """Decrypt a base64-encoded nonce+ciphertext bundle."""
         raw = base64.urlsafe_b64decode(token)
         nonce = raw[:_GCM_NONCE_BYTES]
         ciphertext = raw[_GCM_NONCE_BYTES:]
-        plaintext_bytes = self._aesgcm.decrypt(
-            nonce, ciphertext, None
-        )
+        plaintext_bytes = self._aesgcm.decrypt(nonce, ciphertext, None)
         return plaintext_bytes.decode("utf-8")
 
     def hmac_hash(self, value: str) -> str:

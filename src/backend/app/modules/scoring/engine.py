@@ -80,9 +80,7 @@ def calculate_inherent(
         },
     )
     if vendor.data_classification:
-        base = dc_weights.get(
-            vendor.data_classification, base
-        )
+        base = dc_weights.get(vendor.data_classification, base)
 
     bc_adj = factors.get(
         "business_criticality",
@@ -94,9 +92,7 @@ def calculate_inherent(
         },
     )
     if vendor.business_criticality:
-        base += bc_adj.get(
-            vendor.business_criticality, 0
-        )
+        base += bc_adj.get(vendor.business_criticality, 0)
 
     return min(100.0, max(0.0, round(base, 2)))
 
@@ -132,9 +128,7 @@ def build_snapshot(vendor: Vendor) -> dict:
     }
 
 
-def _dimension_score(
-    vendor: Vendor, dimension: str
-) -> float:
+def _dimension_score(vendor: Vendor, dimension: str) -> float:
     """Estimate score for a dimension from vendor data."""
     base = 50.0
     if vendor.inherent_risk_score is not None:

@@ -41,9 +41,7 @@ async def _get_admin_user_id(
 ) -> uuid.UUID:
     """Fetch first admin user ID."""
     result = await session.execute(
-        select(User.id)
-        .where(User.tenant_id == tenant_id)
-        .limit(1)
+        select(User.id).where(User.tenant_id == tenant_id).limit(1)
     )
     row = result.first()
     return row[0] if row else uuid.uuid4()
@@ -93,8 +91,7 @@ async def _seed_notifications(
         {
             "title": "Assessment overdue",
             "message": (
-                "Salesforce annual assessment is "
-                "7 days past due date."
+                "Salesforce annual assessment is 7 days past due date."
             ),
             "channel": "in_app",
             "entity_type": "assessment",
@@ -102,8 +99,7 @@ async def _seed_notifications(
         {
             "title": "New vendor onboarded",
             "message": (
-                "Workday has been added to the "
-                "vendor registry and classified."
+                "Workday has been added to the vendor registry and classified."
             ),
             "channel": "in_app",
             "entity_type": "vendor",
@@ -111,8 +107,7 @@ async def _seed_notifications(
         {
             "title": "Alert: Rating downgrade",
             "message": (
-                "External security rating for "
-                "Workday dropped from A to B-."
+                "External security rating for Workday dropped from A to B-."
             ),
             "channel": "email",
             "entity_type": "alert",
@@ -120,8 +115,7 @@ async def _seed_notifications(
         {
             "title": "Weekly risk digest ready",
             "message": (
-                "Your weekly TPRM risk summary "
-                "report is ready for review."
+                "Your weekly TPRM risk summary report is ready for review."
             ),
             "channel": "in_app",
             "entity_type": "report",
@@ -138,13 +132,9 @@ async def _seed_notifications(
             entity_type=data["entity_type"],
             read=i >= 3,
         )
-        notif.created_at = now - timedelta(
-            hours=i * 6
-        )
+        notif.created_at = now - timedelta(hours=i * 6)
         if i >= 3:
-            notif.read_at = now - timedelta(
-                hours=i * 3
-            )
+            notif.read_at = now - timedelta(hours=i * 3)
         session.add(notif)
 
     await session.flush()
@@ -169,8 +159,7 @@ async def _seed_email_templates(
             tenant_id=tenant_id,
             name="assessment_reminder",
             subject_template=(
-                "Reminder: {{vendor_name}} assessment "
-                "due {{due_date}}"
+                "Reminder: {{vendor_name}} assessment due {{due_date}}"
             ),
             body_template=(
                 "Hello {{recipient_name}},\n\n"
@@ -191,9 +180,7 @@ async def _seed_email_templates(
         EmailTemplate(
             tenant_id=tenant_id,
             name="finding_notification",
-            subject_template=(
-                "Finding: {{severity}} - {{title}}"
-            ),
+            subject_template=("Finding: {{severity}} - {{title}}"),
             body_template=(
                 "Hello {{recipient_name}},\n\n"
                 "A new {{severity}} finding has been "
@@ -217,9 +204,7 @@ async def _seed_email_templates(
         EmailTemplate(
             tenant_id=tenant_id,
             name="alert_notification",
-            subject_template=(
-                "Alert [{{priority}}]: {{title}}"
-            ),
+            subject_template=("Alert [{{priority}}]: {{title}}"),
             body_template=(
                 "Hello {{recipient_name}},\n\n"
                 "A {{priority}} alert has been raised "
@@ -274,17 +259,14 @@ async def _seed_findings(
             ),
             "severity": "critical",
             "status": "open",
-            "affected_controls": [
-                "SC-28", "SC-13"
-            ],
+            "affected_controls": ["SC-28", "SC-13"],
             "sla_days": 14,
         },
         {
             "vendor_id": vendor_ids[0],
             "title": "Outdated TLS version",
             "description": (
-                "API endpoints support TLS 1.0 and "
-                "1.1 which are deprecated."
+                "API endpoints support TLS 1.0 and 1.1 which are deprecated."
             ),
             "severity": "high",
             "status": "remediation_in_progress",
@@ -295,8 +277,7 @@ async def _seed_findings(
             "vendor_id": vendor_ids[1],
             "title": "No MFA for admin access",
             "description": (
-                "Administrative console lacks "
-                "multi-factor authentication."
+                "Administrative console lacks multi-factor authentication."
             ),
             "severity": "critical",
             "status": "open",
@@ -307,8 +288,7 @@ async def _seed_findings(
             "vendor_id": vendor_ids[1],
             "title": "Insufficient logging",
             "description": (
-                "Audit logs do not capture all "
-                "administrative actions."
+                "Audit logs do not capture all administrative actions."
             ),
             "severity": "medium",
             "status": "submitted_for_verification",
@@ -319,8 +299,7 @@ async def _seed_findings(
             "vendor_id": vendor_ids[2],
             "title": "Weak password policy",
             "description": (
-                "Password policy allows passwords "
-                "shorter than 12 characters."
+                "Password policy allows passwords shorter than 12 characters."
             ),
             "severity": "high",
             "status": "remediation_in_progress",
@@ -331,8 +310,7 @@ async def _seed_findings(
             "vendor_id": vendor_ids[2],
             "title": "Missing incident response plan",
             "description": (
-                "No documented incident response "
-                "procedure for data breaches."
+                "No documented incident response procedure for data breaches."
             ),
             "severity": "high",
             "status": "open",
@@ -342,10 +320,7 @@ async def _seed_findings(
         {
             "vendor_id": vendor_ids[3 % len(vendor_ids)],
             "title": "Expired SSL certificate",
-            "description": (
-                "Production SSL certificate expired "
-                "2 weeks ago."
-            ),
+            "description": ("Production SSL certificate expired 2 weeks ago."),
             "severity": "low",
             "status": "verified_closed",
             "affected_controls": ["SC-8"],
@@ -355,8 +330,7 @@ async def _seed_findings(
             "vendor_id": vendor_ids[4 % len(vendor_ids)],
             "title": "Unpatched CVE in dependency",
             "description": (
-                "Known CVE-2025-1234 in a third-party "
-                "library used by vendor."
+                "Known CVE-2025-1234 in a third-party library used by vendor."
             ),
             "severity": "info",
             "status": "risk_accepted",
@@ -374,24 +348,14 @@ async def _seed_findings(
             description=fd["description"],
             severity=fd["severity"],
             status=fd["status"],
-            affected_controls=fd.get(
-                "affected_controls"
-            ),
-            remediation_guidance=(
-                "Implement recommended controls."
-            ),
+            affected_controls=fd.get("affected_controls"),
+            remediation_guidance=("Implement recommended controls."),
             sla_due_date=(
-                now + timedelta(days=sla_days)
-                if sla_days > 0
-                else None
+                now + timedelta(days=sla_days) if sla_days > 0 else None
             ),
         )
-        if fd["status"] in (
-            "verified_closed", "risk_accepted"
-        ):
-            finding.closed_at = (
-                now - timedelta(days=3)
-            )
+        if fd["status"] in ("verified_closed", "risk_accepted"):
+            finding.closed_at = now - timedelta(days=3)
         session.add(finding)
 
     await session.flush()
@@ -475,9 +439,7 @@ async def _seed_audit_logs(
             details=entry["details"],
             ip_address="192.168.1.100",
         )
-        log.created_at = now - timedelta(
-            hours=i * 2
-        )
+        log.created_at = now - timedelta(hours=i * 2)
         session.add(log)
 
     await session.flush()
@@ -488,25 +450,13 @@ async def seed_sprint_678(
     session: AsyncSession,
 ) -> int:
     """Seed all Sprint 6-8 demo data. Returns count."""
-    user_id = await _get_admin_user_id(
-        session, DEMO_TENANT_ID
-    )
-    vendor_ids = await _get_vendor_ids(
-        session, DEMO_TENANT_ID
-    )
+    user_id = await _get_admin_user_id(session, DEMO_TENANT_ID)
+    vendor_ids = await _get_vendor_ids(session, DEMO_TENANT_ID)
 
-    notifs = await _seed_notifications(
-        session, DEMO_TENANT_ID, user_id
-    )
-    templates = await _seed_email_templates(
-        session, DEMO_TENANT_ID
-    )
-    findings = await _seed_findings(
-        session, DEMO_TENANT_ID, vendor_ids
-    )
-    audit = await _seed_audit_logs(
-        session, DEMO_TENANT_ID, user_id
-    )
+    notifs = await _seed_notifications(session, DEMO_TENANT_ID, user_id)
+    templates = await _seed_email_templates(session, DEMO_TENANT_ID)
+    findings = await _seed_findings(session, DEMO_TENANT_ID, vendor_ids)
+    audit = await _seed_audit_logs(session, DEMO_TENANT_ID, user_id)
 
     await session.commit()
     total = notifs + templates + findings + audit

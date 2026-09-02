@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -71,8 +71,7 @@ class EvidenceService:
             evidence_id=str(evidence.id),
         )
         upload_url = (
-            f"https://s3.mock.velora.io/{s3_key}"
-            f"?X-Amz-SignedHeaders=host"
+            f"https://s3.mock.velora.io/{s3_key}?X-Amz-SignedHeaders=host"
         )
         return EvidenceUploadResponse(
             evidence_id=evidence.id,
@@ -120,25 +119,17 @@ class EvidenceService:
         )
         base = self._apply_filters(base, filters)
 
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
-        total = (
-            await self._session.execute(count_q)
-        ).scalar() or 0
+        count_q = select(func.count()).select_from(base.subquery())
+        total = (await self._session.execute(count_q)).scalar() or 0
 
-        col = getattr(
-            Evidence, filters.sort_by, Evidence.created_at
-        )
+        col = getattr(Evidence, filters.sort_by, Evidence.created_at)
         if filters.sort_order.value == "desc":
             base = base.order_by(col.desc())
         else:
             base = base.order_by(col.asc())
 
         offset = (filters.page - 1) * filters.page_size
-        base = base.offset(offset).limit(
-            filters.page_size
-        )
+        base = base.offset(offset).limit(filters.page_size)
         result = await self._session.execute(base)
         items = result.scalars().all()
 
@@ -157,9 +148,7 @@ class EvidenceService:
         evidence_id: uuid.UUID,
     ) -> EvidenceDetailResponse | None:
         """Mock AI parsing — generate sample extractions."""
-        ev = await self._get_or_none(
-            tenant_id, evidence_id
-        )
+        ev = await self._get_or_none(tenant_id, evidence_id)
         if ev is None:
             return None
 
@@ -188,9 +177,7 @@ class EvidenceService:
             "evidence_processed",
             evidence_id=str(evidence_id),
         )
-        return await self.get_evidence(
-            tenant_id, evidence_id
-        )
+        return await self.get_evidence(tenant_id, evidence_id)
 
     # -- Mappings ---------------------------------------------------
 
@@ -200,24 +187,18 @@ class EvidenceService:
         evidence_id: uuid.UUID,
     ) -> list[EvidenceControlMappingResponse] | None:
         """Return control mappings for an evidence item."""
-        ev = await self._get_or_none(
-            tenant_id, evidence_id
-        )
+        ev = await self._get_or_none(tenant_id, evidence_id)
         if ev is None:
             return None
 
         result = await self._session.execute(
             select(EvidenceControlMapping).where(
-                EvidenceControlMapping.evidence_id
-                == evidence_id,
-                EvidenceControlMapping.tenant_id
-                == tenant_id,
+                EvidenceControlMapping.evidence_id == evidence_id,
+                EvidenceControlMapping.tenant_id == tenant_id,
             )
         )
         mappings = result.scalars().all()
-        return [
-            self._to_mapping_response(m) for m in mappings
-        ]
+        return [self._to_mapping_response(m) for m in mappings]
 
     async def verify_mapping(
         self,
@@ -231,10 +212,8 @@ class EvidenceService:
         result = await self._session.execute(
             select(EvidenceControlMapping).where(
                 EvidenceControlMapping.id == mapping_id,
-                EvidenceControlMapping.evidence_id
-                == evidence_id,
-                EvidenceControlMapping.tenant_id
-                == tenant_id,
+                EvidenceControlMapping.evidence_id == evidence_id,
+                EvidenceControlMapping.tenant_id == tenant_id,
             )
         )
         mapping = result.scalars().first()
@@ -242,9 +221,7 @@ class EvidenceService:
             return None
 
         mapping.verified = verified
-        mapping.verified_by = (
-            verified_by if verified else None
-        )
+        mapping.verified_by = verified_by if verified else None
         await self._session.flush()
         logger.info(
             "mapping_verified",
@@ -261,9 +238,7 @@ class EvidenceService:
         evidence_id: uuid.UUID,
     ) -> bool:
         """Soft-delete evidence. Returns False if not found."""
-        ev = await self._get_or_none(
-            tenant_id, evidence_id
-        )
+        ev = await self._get_or_none(tenant_id, evidence_id)
         if ev is None:
             return False
 
@@ -293,21 +268,19 @@ class EvidenceService:
         return result.scalars().first()
 
     @staticmethod
-    def _apply_filters(query, filters):
+    def _apply_filters(
+        query: Select[tuple[Evidence]],
+        filters: EvidenceFilterParams,
+    ) -> Select[tuple[Evidence]]:
         """Apply WHERE clauses for filters."""
         if filters.vendor_id:
-            query = query.where(
-                Evidence.vendor_id == filters.vendor_id
-            )
+            query = query.where(Evidence.vendor_id == filters.vendor_id)
         if filters.document_type:
             query = query.where(
-                Evidence.document_type
-                == filters.document_type.value
+                Evidence.document_type == filters.document_type.value
             )
         if filters.status:
-            query = query.where(
-                Evidence.status == filters.status.value
-            )
+            query = query.where(Evidence.status == filters.status.value)
         return query
 
     @staticmethod
@@ -337,11 +310,14 @@ class EvidenceService:
                 ("high_findings", "2", 0.89, 5),
             ],
         }
-        fields = field_sets.get(doc_type, [
-            ("document_title", "Vendor Policy Document", 0.85, 1),
-            ("effective_date", "2025-06-01", 0.80, 1),
-            ("version", "2.1", 0.90, 1),
-        ])
+        fields = field_sets.get(
+            doc_type,
+            [
+                ("document_title", "Vendor Policy Document", 0.85, 1),
+                ("effective_date", "2025-06-01", 0.80, 1),
+                ("version", "2.1", 0.90, 1),
+            ],
+        )
         return [
             EvidenceExtraction(
                 tenant_id=tenant_id,

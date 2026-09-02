@@ -33,29 +33,21 @@ class MonitoringConfig(TenantBase):
 
     __tablename__ = "monitoring_configs"
 
-    vendor_id: Mapped[uuid.UUID | None] = (
-        mapped_column(
-            UUID(as_uuid=True),
-            ForeignKey(
-                "vendors.id", ondelete="CASCADE"
-            ),
-            nullable=True,
-            index=True,
-        )
+    vendor_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("vendors.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
     )
-    source: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
+    source: Mapped[str] = mapped_column(Text, nullable=False)
     frequency_hours: Mapped[int] = mapped_column(
         Integer, nullable=False, default=24
     )
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
-    last_polled_at: Mapped[datetime | None] = (
-        mapped_column(
-            DateTime(timezone=True), nullable=True
-        )
+    last_polled_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
 
 
@@ -70,27 +62,15 @@ class MonitoringSignal(TenantBase):
         nullable=False,
         index=True,
     )
-    source: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
-    signal_type: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    signal_type: Mapped[str] = mapped_column(Text, nullable=False)
     severity: Mapped[str] = mapped_column(
         String(50), nullable=False, default="info"
     )
-    title: Mapped[str] = mapped_column(
-        String(500), nullable=False
-    )
-    description: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
-    raw_data: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True
-    )
-    dedup_key: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    raw_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    dedup_key: Mapped[str | None] = mapped_column(Text, nullable=True)
     processed: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
@@ -113,47 +93,31 @@ class Alert(TenantBase):
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="new"
     )
-    title: Mapped[str] = mapped_column(
-        String(500), nullable=False
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    signal_ids: Mapped[list[uuid.UUID] | None] = mapped_column(
+        ARRAY(UUID(as_uuid=True)), nullable=True
     )
-    description: Mapped[str | None] = mapped_column(
-        Text, nullable=True
+    impact_assessment: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True
     )
-    signal_ids: Mapped[list[uuid.UUID] | None] = (
-        mapped_column(
-            ARRAY(UUID(as_uuid=True)), nullable=True
-        )
+    acknowledged_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
     )
-    impact_assessment: Mapped[dict | None] = (
-        mapped_column(JSONB, nullable=True)
+    resolved_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
     )
-    acknowledged_by: Mapped[uuid.UUID | None] = (
-        mapped_column(
-            UUID(as_uuid=True),
-            ForeignKey("users.id", ondelete="SET NULL"),
-            nullable=True,
-        )
+    acknowledged_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
-    resolved_by: Mapped[uuid.UUID | None] = (
-        mapped_column(
-            UUID(as_uuid=True),
-            ForeignKey("users.id", ondelete="SET NULL"),
-            nullable=True,
-        )
+    resolved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
-    acknowledged_at: Mapped[datetime | None] = (
-        mapped_column(
-            DateTime(timezone=True), nullable=True
-        )
-    )
-    resolved_at: Mapped[datetime | None] = (
-        mapped_column(
-            DateTime(timezone=True), nullable=True
-        )
-    )
-    resolution_notes: Mapped[str | None] = (
-        mapped_column(Text, nullable=True)
-    )
+    resolution_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class AlertRule(TenantBase):
@@ -161,18 +125,10 @@ class AlertRule(TenantBase):
 
     __tablename__ = "alert_rules"
 
-    name: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
-    description: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
-    conditions: Mapped[dict] = mapped_column(
-        JSONB, nullable=False
-    )
-    actions: Mapped[dict] = mapped_column(
-        JSONB, nullable=False
-    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    conditions: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    actions: Mapped[dict] = mapped_column(JSONB, nullable=False)
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
@@ -189,22 +145,14 @@ class VendorTimeline(TenantBase):
         nullable=False,
         index=True,
     )
-    event_type: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
-    title: Mapped[str] = mapped_column(
-        String(500), nullable=False
-    )
-    description: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     event_metadata: Mapped[dict | None] = mapped_column(
         "metadata", JSONB, nullable=True
     )
-    actor_id: Mapped[uuid.UUID | None] = (
-        mapped_column(
-            UUID(as_uuid=True),
-            ForeignKey("users.id", ondelete="SET NULL"),
-            nullable=True,
-        )
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
     )

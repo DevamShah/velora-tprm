@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -43,9 +43,7 @@ class AdminService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
         self._settings = get_settings()
-        self._encryptor = FieldEncryptor(
-            self._settings.ENCRYPTION_KEY
-        )
+        self._encryptor = FieldEncryptor(self._settings.ENCRYPTION_KEY)
 
     # -- List Users -------------------------------------------------
 
@@ -61,9 +59,7 @@ class AdminService:
         )
         users = result.scalars().all()
         items = [self._to_user_response(u) for u in users]
-        return UserListResponse(
-            items=items, total=len(items)
-        )
+        return UserListResponse(items=items, total=len(items))
 
     # -- Create User ------------------------------------------------
 
@@ -73,14 +69,10 @@ class AdminService:
         data: UserCreate,
     ) -> UserResponse:
         """Create a new user (invite flow)."""
-        email_hash = self._encryptor.hmac_hash(
-            data.email
-        )
+        email_hash = self._encryptor.hmac_hash(data.email)
         user = User(
             tenant_id=tenant_id,
-            email_encrypted=self._encryptor.encrypt(
-                data.email
-            ),
+            email_encrypted=self._encryptor.encrypt(data.email),
             email_hash=email_hash,
             first_name=data.first_name,
             last_name=data.last_name,
@@ -99,9 +91,7 @@ class AdminService:
             self._session.add(user_role)
             await self._session.flush()
 
-        logger.info(
-            "user_created", user_id=str(user.id)
-        )
+        logger.info("user_created", user_id=str(user.id))
         return self._to_user_response(user)
 
     # -- Update User ------------------------------------------------
@@ -113,22 +103,16 @@ class AdminService:
         data: UserUpdate,
     ) -> UserResponse | None:
         """Update user details."""
-        user = await self._get_user(
-            tenant_id, user_id
-        )
+        user = await self._get_user(tenant_id, user_id)
         if user is None:
             return None
 
-        update_data = data.model_dump(
-            exclude_unset=True
-        )
+        update_data = data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(user, field, value)
 
         await self._session.flush()
-        logger.info(
-            "user_updated", user_id=str(user_id)
-        )
+        logger.info("user_updated", user_id=str(user_id))
         return self._to_user_response(user)
 
     # -- Deactivate User --------------------------------------------
@@ -139,17 +123,13 @@ class AdminService:
         user_id: uuid.UUID,
     ) -> bool:
         """Deactivate a user. Returns False if not found."""
-        user = await self._get_user(
-            tenant_id, user_id
-        )
+        user = await self._get_user(tenant_id, user_id)
         if user is None:
             return False
 
         user.is_active = False
         await self._session.flush()
-        logger.info(
-            "user_deactivated", user_id=str(user_id)
-        )
+        logger.info("user_deactivated", user_id=str(user_id))
         return True
 
     # -- List Roles -------------------------------------------------
@@ -160,9 +140,7 @@ class AdminService:
     ) -> list[RoleResponse]:
         """List all roles in a tenant."""
         result = await self._session.execute(
-            select(Role).where(
-                Role.tenant_id == tenant_id
-            )
+            select(Role).where(Role.tenant_id == tenant_id)
         )
         roles = result.scalars().all()
         return [self._to_role_response(r) for r in roles]
@@ -185,9 +163,7 @@ class AdminService:
         )
         self._session.add(role)
         await self._session.flush()
-        logger.info(
-            "role_created", role_id=str(role.id)
-        )
+        logger.info("role_created", role_id=str(role.id))
         return self._to_role_response(role)
 
     # -- Update Role ------------------------------------------------
@@ -209,16 +185,12 @@ class AdminService:
         if role is None:
             return None
 
-        update_data = data.model_dump(
-            exclude_unset=True
-        )
+        update_data = data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(role, field, value)
 
         await self._session.flush()
-        logger.info(
-            "role_updated", role_id=str(role_id)
-        )
+        logger.info("role_updated", role_id=str(role_id))
         return self._to_role_response(role)
 
     # -- Assign Role ------------------------------------------------
@@ -230,9 +202,7 @@ class AdminService:
         role_id: uuid.UUID,
     ) -> bool:
         """Assign a role to a user."""
-        user = await self._get_user(
-            tenant_id, user_id
-        )
+        user = await self._get_user(tenant_id, user_id)
         if user is None:
             return False
 
@@ -292,20 +262,18 @@ class AdminService:
         page_size: int = 20,
     ) -> AuditLogListResponse:
         """Query audit logs with filters and pagination."""
-        base = select(AuditLog).where(
-            AuditLog.tenant_id == tenant_id
-        )
+        base = select(AuditLog).where(AuditLog.tenant_id == tenant_id)
         base = self._apply_audit_filters(
-            base, user_id, action, entity_type,
-            date_from, date_to,
+            base,
+            user_id,
+            action,
+            entity_type,
+            date_from,
+            date_to,
         )
 
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
-        total = (
-            await self._session.execute(count_q)
-        ).scalar() or 0
+        count_q = select(func.count()).select_from(base.subquery())
+        total = (await self._session.execute(count_q)).scalar() or 0
 
         offset = (page - 1) * page_size
         result = await self._session.execute(
@@ -316,10 +284,7 @@ class AdminService:
         logs = result.scalars().all()
 
         return AuditLogListResponse(
-            items=[
-                self._to_audit_response(lg)
-                for lg in logs
-            ],
+            items=[self._to_audit_response(lg) for lg in logs],
             total=total,
             page=page,
             page_size=page_size,
@@ -333,9 +298,7 @@ class AdminService:
         filters: AuditLogExportRequest,
     ) -> list[AuditLogResponse]:
         """Export audit logs matching filters (no pagination)."""
-        base = select(AuditLog).where(
-            AuditLog.tenant_id == tenant_id
-        )
+        base = select(AuditLog).where(AuditLog.tenant_id == tenant_id)
         base = self._apply_audit_filters(
             base,
             filters.user_id,
@@ -346,14 +309,10 @@ class AdminService:
         )
 
         result = await self._session.execute(
-            base.order_by(AuditLog.created_at.desc())
-            .limit(10000)
+            base.order_by(AuditLog.created_at.desc()).limit(10000)
         )
         logs = result.scalars().all()
-        return [
-            self._to_audit_response(lg)
-            for lg in logs
-        ]
+        return [self._to_audit_response(lg) for lg in logs]
 
     # -- Log Action -------------------------------------------------
 
@@ -399,15 +358,11 @@ class AdminService:
         )
         return result.scalars().first()
 
-    def _to_user_response(
-        self, user: User
-    ) -> UserResponse:
+    def _to_user_response(self, user: User) -> UserResponse:
         """Map User ORM to admin response schema."""
         email = None
         try:
-            email = self._encryptor.decrypt(
-                user.email_encrypted
-            )
+            email = self._encryptor.decrypt(user.email_encrypted)
         except Exception:
             email = None
 
@@ -417,7 +372,11 @@ class AdminService:
                 if ur.role and ur.role.name:
                     role_names.append(ur.role.name)
         except Exception:
-            pass
+            logger.warning(
+                "admin.user_roles_unavailable",
+                user_id=str(user.id),
+                exc_info=True,
+            )
 
         return UserResponse(
             id=user.id,
@@ -467,32 +426,22 @@ class AdminService:
 
     @staticmethod
     def _apply_audit_filters(
-        query,
+        query: Select[tuple[AuditLog]],
         user_id: uuid.UUID | None,
         action: str | None,
         entity_type: str | None,
         date_from: datetime | None,
         date_to: datetime | None,
-    ):
+    ) -> Select[tuple[AuditLog]]:
         """Apply WHERE clauses for audit log filters."""
         if user_id:
-            query = query.where(
-                AuditLog.user_id == user_id
-            )
+            query = query.where(AuditLog.user_id == user_id)
         if action:
-            query = query.where(
-                AuditLog.action == action
-            )
+            query = query.where(AuditLog.action == action)
         if entity_type:
-            query = query.where(
-                AuditLog.entity_type == entity_type
-            )
+            query = query.where(AuditLog.entity_type == entity_type)
         if date_from:
-            query = query.where(
-                AuditLog.created_at >= date_from
-            )
+            query = query.where(AuditLog.created_at >= date_from)
         if date_to:
-            query = query.where(
-                AuditLog.created_at <= date_to
-            )
+            query = query.where(AuditLog.created_at <= date_to)
         return query

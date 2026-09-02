@@ -27,12 +27,8 @@ class Tenant(Base):
 
     __tablename__ = "tenants"
 
-    name: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
-    slug: Mapped[str] = mapped_column(
-        String(100), unique=True, nullable=False
-    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
@@ -44,22 +40,14 @@ class User(TenantBase):
     __tablename__ = "users"
 
     # Encrypted email + deterministic hash for WHERE lookups
-    email_encrypted: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
+    email_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
     email_hash: Mapped[str] = mapped_column(
         String(64), nullable=False, index=True
     )
 
-    first_name: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    last_name: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    password_hash: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
+    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
@@ -84,12 +72,8 @@ class Role(TenantBase):
 
     __tablename__ = "roles"
 
-    name: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    description: Mapped[str | None] = mapped_column(
-        String(500), nullable=True
-    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     permissions: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=list
     )
@@ -158,6 +142,4 @@ class RefreshToken(TenantBase):
     revoked_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    device_info: Mapped[str | None] = mapped_column(
-        String(500), nullable=True
-    )
+    device_info: Mapped[str | None] = mapped_column(String(500), nullable=True)

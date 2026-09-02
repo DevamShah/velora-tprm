@@ -50,25 +50,13 @@ class ReportsService:
         tenant_id: uuid.UUID,
     ) -> ExecutiveDashboardData:
         """Aggregate cross-module data for executive view."""
-        vendors_data = await self._get_vendor_stats(
-            tenant_id
-        )
-        assessments_data = await self._get_assessment_stats(
-            tenant_id
-        )
-        findings_data = await self._get_finding_stats(
-            tenant_id
-        )
-        alerts_data = await self._get_alert_stats(
-            tenant_id
-        )
-        avg_score = await self._get_avg_risk_score(
-            tenant_id
-        )
+        vendors_data = await self._get_vendor_stats(tenant_id)
+        assessments_data = await self._get_assessment_stats(tenant_id)
+        findings_data = await self._get_finding_stats(tenant_id)
+        alerts_data = await self._get_alert_stats(tenant_id)
+        avg_score = await self._get_avg_risk_score(tenant_id)
         recent = await self._get_recent_alerts(tenant_id)
-        top_risk = await self._get_top_risk_vendors(
-            tenant_id
-        )
+        top_risk = await self._get_top_risk_vendors(tenant_id)
 
         return ExecutiveDashboardData(
             **vendors_data,
@@ -101,9 +89,7 @@ class ReportsService:
         )
         self._session.add(report)
         await self._session.flush()
-        logger.info(
-            "report_generated", report_id=str(report.id)
-        )
+        logger.info("report_generated", report_id=str(report.id))
         return self._to_report_response(report)
 
     # -- List Reports -----------------------------------------------
@@ -118,28 +104,19 @@ class ReportsService:
         base = select(GeneratedReport).where(
             GeneratedReport.tenant_id == tenant_id
         )
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
-        total = (
-            await self._session.execute(count_q)
-        ).scalar() or 0
+        count_q = select(func.count()).select_from(base.subquery())
+        total = (await self._session.execute(count_q)).scalar() or 0
 
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            base.order_by(
-                GeneratedReport.created_at.desc()
-            )
+            base.order_by(GeneratedReport.created_at.desc())
             .offset(offset)
             .limit(page_size)
         )
         reports = result.scalars().all()
 
         return ReportListResponse(
-            items=[
-                self._to_report_response(r)
-                for r in reports
-            ],
+            items=[self._to_report_response(r) for r in reports],
             total=total,
             page=page,
             page_size=page_size,
@@ -172,15 +149,10 @@ class ReportsService:
     ) -> list[ReportTemplateResponse]:
         """List all report templates for tenant."""
         result = await self._session.execute(
-            select(ReportTemplate).where(
-                ReportTemplate.tenant_id == tenant_id
-            )
+            select(ReportTemplate).where(ReportTemplate.tenant_id == tenant_id)
         )
         templates = result.scalars().all()
-        return [
-            self._to_template_response(t)
-            for t in templates
-        ]
+        return [self._to_template_response(t) for t in templates]
 
     # -- Dashboard Config -------------------------------------------
 
@@ -220,15 +192,12 @@ class ReportsService:
             config = DashboardConfig(
                 tenant_id=tenant_id,
                 user_id=user_id,
-                dashboard_type=data.dashboard_type
-                or "executive",
+                dashboard_type=data.dashboard_type or "executive",
                 widget_layout=data.widget_layout,
             )
             self._session.add(config)
         else:
-            update_data = data.model_dump(
-                exclude_unset=True
-            )
+            update_data = data.model_dump(exclude_unset=True)
             for field, value in update_data.items():
                 setattr(config, field, value)
 
@@ -237,14 +206,10 @@ class ReportsService:
 
     # -- Private: vendor stats --------------------------------------
 
-    async def _get_vendor_stats(
-        self, tenant_id: uuid.UUID
-    ) -> dict:
+    async def _get_vendor_stats(self, tenant_id: uuid.UUID) -> dict:
         """Count vendors total and by tier."""
         result = await self._session.execute(
-            select(
-                Vendor.tier, func.count(Vendor.id)
-            )
+            select(Vendor.tier, func.count(Vendor.id))
             .where(
                 Vendor.tenant_id == tenant_id,
                 Vendor.deleted_at.is_(None),
@@ -262,17 +227,13 @@ class ReportsService:
                 high=tier_map.get("high", 0),
                 medium=tier_map.get("medium", 0),
                 low=tier_map.get("low", 0),
-                unclassified=tier_map.get(
-                    "unclassified", 0
-                ),
+                unclassified=tier_map.get("unclassified", 0),
             ),
         }
 
     # -- Private: assessment stats ----------------------------------
 
-    async def _get_assessment_stats(
-        self, tenant_id: uuid.UUID
-    ) -> dict:
+    async def _get_assessment_stats(self, tenant_id: uuid.UUID) -> dict:
         """Count assessments total and by status."""
         from app.modules.assessments.models import (
             Assessment,
@@ -294,9 +255,7 @@ class ReportsService:
             "total_assessments": total,
             "assessments_by_status": AssessmentsByStatus(
                 draft=status_map.get("draft", 0),
-                in_progress=status_map.get(
-                    "in_progress", 0
-                ),
+                in_progress=status_map.get("in_progress", 0),
                 submitted=status_map.get("submitted", 0),
                 completed=status_map.get("completed", 0),
                 overdue=status_map.get("overdue", 0),
@@ -305,9 +264,7 @@ class ReportsService:
 
     # -- Private: finding stats -------------------------------------
 
-    async def _get_finding_stats(
-        self, tenant_id: uuid.UUID
-    ) -> dict:
+    async def _get_finding_stats(self, tenant_id: uuid.UUID) -> dict:
         """Count open findings total and by severity."""
         from app.modules.findings.models import Finding
 
@@ -345,19 +302,13 @@ class ReportsService:
 
     # -- Private: alert stats ---------------------------------------
 
-    async def _get_alert_stats(
-        self, tenant_id: uuid.UUID
-    ) -> dict:
+    async def _get_alert_stats(self, tenant_id: uuid.UUID) -> dict:
         """Count active alerts total and by priority."""
         result = await self._session.execute(
-            select(
-                Alert.priority, func.count(Alert.id)
-            )
+            select(Alert.priority, func.count(Alert.id))
             .where(
                 Alert.tenant_id == tenant_id,
-                Alert.status.in_(
-                    ["new", "acknowledged", "investigating"]
-                ),
+                Alert.status.in_(["new", "acknowledged", "investigating"]),
             )
             .group_by(Alert.priority)
         )
@@ -378,14 +329,10 @@ class ReportsService:
 
     # -- Private: averages ------------------------------------------
 
-    async def _get_avg_risk_score(
-        self, tenant_id: uuid.UUID
-    ) -> float | None:
+    async def _get_avg_risk_score(self, tenant_id: uuid.UUID) -> float | None:
         """Average inherent risk score across vendors."""
         result = await self._session.execute(
-            select(
-                func.avg(Vendor.inherent_risk_score)
-            ).where(
+            select(func.avg(Vendor.inherent_risk_score)).where(
                 Vendor.tenant_id == tenant_id,
                 Vendor.deleted_at.is_(None),
                 Vendor.inherent_risk_score.isnot(None),
@@ -431,9 +378,7 @@ class ReportsService:
                 Vendor.deleted_at.is_(None),
                 Vendor.inherent_risk_score.isnot(None),
             )
-            .order_by(
-                Vendor.inherent_risk_score.desc()
-            )
+            .order_by(Vendor.inherent_risk_score.desc())
             .limit(5)
         )
         vendors = result.scalars().all()

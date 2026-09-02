@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -71,10 +71,7 @@ class AssessmentService:
         )
         result = await self._session.execute(query)
         templates = result.scalars().all()
-        return [
-            self._to_template_response(t)
-            for t in templates
-        ]
+        return [self._to_template_response(t) for t in templates]
 
     async def create_template(
         self,
@@ -91,9 +88,7 @@ class AssessmentService:
             is_system=data.is_system,
             scoring_weights=data.scoring_weights,
             question_count=0,
-            estimated_duration_minutes=(
-                data.estimated_duration_minutes
-            ),
+            estimated_duration_minutes=(data.estimated_duration_minutes),
         )
         self._session.add(template)
         await self._session.flush()
@@ -111,9 +106,7 @@ class AssessmentService:
         data: AssessmentCreate,
     ) -> AssessmentResponse:
         """Create assessment from template, cloning questions."""
-        template = await self._get_template(
-            tenant_id, data.template_id
-        )
+        template = await self._get_template(tenant_id, data.template_id)
         if template is None:
             raise ValueError("Template not found")
 
@@ -129,9 +122,7 @@ class AssessmentService:
         self._session.add(assessment)
         await self._session.flush()
 
-        await self._clone_questions(
-            tenant_id, assessment.id, data.template_id
-        )
+        await self._clone_questions(tenant_id, assessment.id, data.template_id)
 
         logger.info(
             "assessment_created",
@@ -165,9 +156,7 @@ class AssessmentService:
         )
         base = self._apply_filters(base, filters)
 
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
+        count_q = select(func.count()).select_from(base.subquery())
         total_result = await self._session.execute(count_q)
         total = total_result.scalar() or 0
 
@@ -179,9 +168,7 @@ class AssessmentService:
         assessments = result.scalars().all()
 
         return AssessmentListResponse(
-            items=[
-                self._to_response(a) for a in assessments
-            ],
+            items=[self._to_response(a) for a in assessments],
             total=total,
             page=filters.page,
             page_size=filters.page_size,
@@ -199,9 +186,7 @@ class AssessmentService:
             select(Assessment)
             .options(
                 selectinload(Assessment.responses).options(
-                    selectinload(
-                        QuestionnaireResponse.question
-                    )
+                    selectinload(QuestionnaireResponse.question)
                 ),
             )
             .where(
@@ -255,13 +240,9 @@ class AssessmentService:
         if assessment is None:
             return None
 
-        self._enforce_transition(
-            assessment.status, "distributed"
-        )
+        self._enforce_transition(assessment.status, "distributed")
         assessment.status = "distributed"
-        assessment.distributed_at = datetime.now(
-            UTC
-        )
+        assessment.distributed_at = datetime.now(UTC)
         await self._session.flush()
 
         logger.info(
@@ -284,17 +265,11 @@ class AssessmentService:
         if assessment is None:
             return None
 
-        self._enforce_transition(
-            assessment.status, "submitted"
-        )
-        await self._validate_required_responses(
-            assessment_id
-        )
+        self._enforce_transition(assessment.status, "submitted")
+        await self._validate_required_responses(assessment_id)
 
         assessment.status = "submitted"
-        assessment.submitted_at = datetime.now(
-            UTC
-        )
+        assessment.submitted_at = datetime.now(UTC)
         await self._session.flush()
 
         logger.info(
@@ -318,9 +293,7 @@ class AssessmentService:
         if assessment is None:
             return None
 
-        self._enforce_transition(
-            assessment.status, "under_review"
-        )
+        self._enforce_transition(assessment.status, "under_review")
         assessment.status = "under_review"
         assessment.assigned_to = reviewer_id
         await self._session.flush()
@@ -346,17 +319,11 @@ class AssessmentService:
         if assessment is None:
             return None
 
-        self._enforce_transition(
-            assessment.status, "completed"
-        )
+        self._enforce_transition(assessment.status, "completed")
 
-        score_data = await self._calculate_score(
-            assessment_id
-        )
+        score_data = await self._calculate_score(assessment_id)
         assessment.status = "completed"
-        assessment.completed_at = datetime.now(
-            UTC
-        )
+        assessment.completed_at = datetime.now(UTC)
         assessment.overall_score = score_data["score"]
         assessment.scoring_details = score_data
 
@@ -382,9 +349,7 @@ class AssessmentService:
         if assessment is None:
             return None
 
-        self._enforce_transition(
-            assessment.status, "cancelled"
-        )
+        self._enforce_transition(assessment.status, "cancelled")
         assessment.status = "cancelled"
         await self._session.flush()
 
@@ -410,26 +375,16 @@ class AssessmentService:
 
         query = (
             select(QuestionnaireResponse)
-            .options(
-                selectinload(
-                    QuestionnaireResponse.question
-                )
-            )
+            .options(selectinload(QuestionnaireResponse.question))
             .where(
-                QuestionnaireResponse.assessment_id
-                == assessment_id,
-                QuestionnaireResponse.tenant_id
-                == tenant_id,
+                QuestionnaireResponse.assessment_id == assessment_id,
+                QuestionnaireResponse.tenant_id == tenant_id,
             )
-            .order_by(
-                QuestionnaireResponse.created_at.asc()
-            )
+            .order_by(QuestionnaireResponse.created_at.asc())
         )
         result = await self._session.execute(query)
         responses = result.scalars().all()
-        return [
-            self._to_response_item(r) for r in responses
-        ]
+        return [self._to_response_item(r) for r in responses]
 
     async def update_response(
         self,
@@ -441,8 +396,7 @@ class AssessmentService:
         """Update a single questionnaire response."""
         query = select(QuestionnaireResponse).where(
             QuestionnaireResponse.id == response_id,
-            QuestionnaireResponse.assessment_id
-            == assessment_id,
+            QuestionnaireResponse.assessment_id == assessment_id,
             QuestionnaireResponse.tenant_id == tenant_id,
         )
         result = await self._session.execute(query)
@@ -454,14 +408,10 @@ class AssessmentService:
         now = datetime.now(UTC)
 
         if "response_value" in update_data:
-            response.response_value = update_data[
-                "response_value"
-            ]
+            response.response_value = update_data["response_value"]
             response.responded_at = now
         if "response_text" in update_data:
-            response.response_text = update_data[
-                "response_text"
-            ]
+            response.response_text = update_data["response_text"]
             response.responded_at = now
         if "review_status" in update_data:
             val = update_data["review_status"]
@@ -470,9 +420,7 @@ class AssessmentService:
             )
             response.reviewed_at = now
         if "reviewer_notes" in update_data:
-            response.reviewer_notes = update_data[
-                "reviewer_notes"
-            ]
+            response.reviewer_notes = update_data["reviewer_notes"]
 
         await self._session.flush()
         logger.info(
@@ -491,27 +439,17 @@ class AssessmentService:
         query = (
             select(QuestionnaireResponse)
             .options(
-                selectinload(
-                    QuestionnaireResponse.question
-                ),
-                selectinload(
-                    QuestionnaireResponse.assessment
-                ),
+                selectinload(QuestionnaireResponse.question),
+                selectinload(QuestionnaireResponse.assessment),
             )
             .where(
-                QuestionnaireResponse.tenant_id
-                == tenant_id,
+                QuestionnaireResponse.tenant_id == tenant_id,
                 or_(
-                    QuestionnaireResponse.review_status
-                    == "pending",
-                    QuestionnaireResponse.ai_confidence
-                    < 0.7,
+                    QuestionnaireResponse.review_status == "pending",
+                    QuestionnaireResponse.ai_confidence < 0.7,
                 ),
             )
-            .order_by(
-                QuestionnaireResponse.ai_confidence.asc()
-                .nulls_first()
-            )
+            .order_by(QuestionnaireResponse.ai_confidence.asc().nulls_first())
             .limit(100)
         )
         result = await self._session.execute(query)
@@ -533,24 +471,16 @@ class AssessmentService:
                     assessment_title=assessment_title,
                     vendor_name=vendor_name,
                     question_text=(
-                        r.question.question_text
-                        if r.question
-                        else ""
+                        r.question.question_text if r.question else ""
                     ),
-                    section=(
-                        r.question.section
-                        if r.question
-                        else None
-                    ),
+                    section=(r.question.section if r.question else None),
                     response_value=r.response_value,
                     ai_confidence=r.ai_confidence,
                     review_status=r.review_status,
                 )
             )
 
-        return ReviewQueueResponse(
-            items=items, total=len(items)
-        )
+        return ReviewQueueResponse(items=items, total=len(items))
 
     # -- Private helpers --------------------------------------------
 
@@ -619,14 +549,9 @@ class AssessmentService:
         """Ensure all required questions have responses."""
         query = (
             select(QuestionnaireResponse)
-            .options(
-                selectinload(
-                    QuestionnaireResponse.question
-                )
-            )
+            .options(selectinload(QuestionnaireResponse.question))
             .where(
-                QuestionnaireResponse.assessment_id
-                == assessment_id,
+                QuestionnaireResponse.assessment_id == assessment_id,
             )
         )
         result = await self._session.execute(query)
@@ -636,18 +561,14 @@ class AssessmentService:
         for r in responses:
             if r.question and r.question.is_required:
                 has_value = (
-                    r.response_value is not None
-                    or r.response_text is not None
+                    r.response_value is not None or r.response_text is not None
                 )
                 if not has_value:
-                    missing.append(
-                        r.question.question_text[:50]
-                    )
+                    missing.append(r.question.question_text[:50])
 
         if missing:
             raise ValueError(
-                f"Required questions unanswered: "
-                f"{', '.join(missing[:5])}"
+                f"Required questions unanswered: {', '.join(missing[:5])}"
             )
 
     async def _calculate_score(
@@ -657,14 +578,9 @@ class AssessmentService:
         """Calculate weighted score from responses."""
         query = (
             select(QuestionnaireResponse)
-            .options(
-                selectinload(
-                    QuestionnaireResponse.question
-                )
-            )
+            .options(selectinload(QuestionnaireResponse.question))
             .where(
-                QuestionnaireResponse.assessment_id
-                == assessment_id,
+                QuestionnaireResponse.assessment_id == assessment_id,
             )
         )
         result = await self._session.execute(query)
@@ -675,17 +591,13 @@ class AssessmentService:
         domain_scores: dict[str, dict] = {}
 
         for r in responses:
-            weight = (
-                r.question.weight if r.question else 1.0
-            )
+            weight = r.question.weight if r.question else 1.0
             total_weight += weight
             points = self._score_response(r)
             weighted_score += points * weight
 
             domain = (
-                r.question.risk_domain
-                if r.question
-                else "general"
+                r.question.risk_domain if r.question else "general"
             ) or "general"
             if domain not in domain_scores:
                 domain_scores[domain] = {
@@ -693,14 +605,10 @@ class AssessmentService:
                     "score": 0.0,
                 }
             domain_scores[domain]["weight"] += weight
-            domain_scores[domain]["score"] += (
-                points * weight
-            )
+            domain_scores[domain]["score"] += points * weight
 
         final_score = (
-            (weighted_score / total_weight * 100)
-            if total_weight > 0
-            else 0.0
+            (weighted_score / total_weight * 100) if total_weight > 0 else 0.0
         )
 
         domain_pcts = {}
@@ -748,9 +656,7 @@ class AssessmentService:
         return 0.0
 
     @staticmethod
-    def _enforce_transition(
-        current: str, target: str
-    ) -> None:
+    def _enforce_transition(current: str, target: str) -> None:
         """Validate state machine transition."""
         allowed = VALID_TRANSITIONS.get(current, set())
         if target not in allowed:
@@ -760,31 +666,27 @@ class AssessmentService:
             )
 
     @staticmethod
-    def _apply_filters(query, filters):
+    def _apply_filters(
+        query: Select[tuple[Assessment]],
+        filters: AssessmentFilterParams,
+    ) -> Select[tuple[Assessment]]:
         """Apply WHERE clauses for assessment filters."""
         if filters.status:
-            query = query.where(
-                Assessment.status
-                == filters.status.value
-            )
+            query = query.where(Assessment.status == filters.status.value)
         if filters.vendor_id:
-            query = query.where(
-                Assessment.vendor_id == filters.vendor_id
-            )
+            query = query.where(Assessment.vendor_id == filters.vendor_id)
         if filters.template_id:
-            query = query.where(
-                Assessment.template_id
-                == filters.template_id
-            )
+            query = query.where(Assessment.template_id == filters.template_id)
         if filters.search:
             pattern = f"%{filters.search}%"
-            query = query.where(
-                Assessment.title.ilike(pattern)
-            )
+            query = query.where(Assessment.title.ilike(pattern))
         return query
 
     @staticmethod
-    def _apply_sorting(query, filters):
+    def _apply_sorting(
+        query: Select[tuple[Assessment]],
+        filters: AssessmentFilterParams,
+    ) -> Select[tuple[Assessment]]:
         """Apply ORDER BY clause based on filter params."""
         col = getattr(
             Assessment,
@@ -813,9 +715,7 @@ class AssessmentService:
             is_active=template.is_active,
             scoring_weights=template.scoring_weights,
             question_count=template.question_count,
-            estimated_duration_minutes=(
-                template.estimated_duration_minutes
-            ),
+            estimated_duration_minutes=(template.estimated_duration_minutes),
             created_at=template.created_at,
             updated_at=template.updated_at,
         )
@@ -826,9 +726,7 @@ class AssessmentService:
     ) -> AssessmentResponse:
         """Map assessment ORM to response schema."""
         vendor_name = None
-        if hasattr(assessment, "vendor") and (
-            assessment.vendor is not None
-        ):
+        if hasattr(assessment, "vendor") and (assessment.vendor is not None):
             vendor_name = assessment.vendor.name
 
         template_name = None
@@ -864,9 +762,7 @@ class AssessmentService:
     ) -> AssessmentDetailResponse:
         """Map assessment with relations to detail schema."""
         vendor_name = None
-        if hasattr(assessment, "vendor") and (
-            assessment.vendor is not None
-        ):
+        if hasattr(assessment, "vendor") and (assessment.vendor is not None):
             vendor_name = assessment.vendor.name
 
         template_name = None
@@ -877,13 +773,10 @@ class AssessmentService:
 
         responses = []
         answered = 0
-        for r in (assessment.responses or []):
+        for r in assessment.responses or []:
             item = AssessmentService._to_response_item(r)
             responses.append(item)
-            if (
-                r.response_value is not None
-                or r.response_text is not None
-            ):
+            if r.response_value is not None or r.response_text is not None:
                 answered += 1
 
         return AssessmentDetailResponse(
@@ -922,9 +815,7 @@ class AssessmentService:
             question = QuestionResponse(
                 id=r.question.id,
                 tenant_id=r.question.tenant_id,
-                question_bank_id=(
-                    r.question.question_bank_id
-                ),
+                question_bank_id=(r.question.question_bank_id),
                 template_id=r.question.template_id,
                 section=r.question.section,
                 subsection=r.question.subsection,

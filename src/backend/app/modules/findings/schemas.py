@@ -30,9 +30,7 @@ class FindingStatus(str, Enum):
 
     open = "open"
     remediation_in_progress = "remediation_in_progress"
-    submitted_for_verification = (
-        "submitted_for_verification"
-    )
+    submitted_for_verification = "submitted_for_verification"
     verified_closed = "verified_closed"
     risk_accepted = "risk_accepted"
     wont_fix = "wont_fix"
@@ -67,9 +65,7 @@ class FindingCreate(BaseModel):
 class FindingUpdate(BaseModel):
     """Update a finding."""
 
-    title: str | None = Field(
-        None, min_length=1, max_length=500
-    )
+    title: str | None = Field(None, min_length=1, max_length=500)
     description: str | None = None
     severity: FindingSeverity | None = None
     status: FindingStatus | None = None
@@ -91,9 +87,7 @@ class FindingClose(BaseModel):
 class RemediationCreate(BaseModel):
     """Create a remediation action."""
 
-    action_type: str = Field(
-        min_length=1, max_length=100
-    )
+    action_type: str = Field(min_length=1, max_length=100)
     description: str = Field(min_length=1)
     effort_estimate: str | None = None
 
@@ -101,9 +95,7 @@ class RemediationCreate(BaseModel):
 class RemediationUpdate(BaseModel):
     """Update a remediation action."""
 
-    action_type: str | None = Field(
-        None, min_length=1, max_length=100
-    )
+    action_type: str | None = Field(None, min_length=1, max_length=100)
     description: str | None = None
     status: RemediationStatus | None = None
     effort_estimate: str | None = None
@@ -146,8 +138,8 @@ class FindingResponse(BaseModel):
     sla_due_date: datetime | None = None
     assigned_to: uuid.UUID | None = None
     closed_at: datetime | None = None
-    remediation_actions: list[RemediationResponse] = (
-        Field(default_factory=list)
+    remediation_actions: list[RemediationResponse] = Field(
+        default_factory=list
     )
     created_at: datetime
     updated_at: datetime

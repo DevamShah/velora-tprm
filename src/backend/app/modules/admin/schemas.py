@@ -44,12 +44,8 @@ class UserCreate(BaseModel):
     """Create / invite a new user."""
 
     email: str = Field(min_length=1, max_length=255)
-    first_name: str = Field(
-        min_length=1, max_length=100
-    )
-    last_name: str = Field(
-        min_length=1, max_length=100
-    )
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
     password: str = Field(min_length=8, max_length=128)
     role_id: uuid.UUID | None = None
 
@@ -57,12 +53,8 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     """Update user details."""
 
-    first_name: str | None = Field(
-        None, min_length=1, max_length=100
-    )
-    last_name: str | None = Field(
-        None, min_length=1, max_length=100
-    )
+    first_name: str | None = Field(None, min_length=1, max_length=100)
+    last_name: str | None = Field(None, min_length=1, max_length=100)
     is_active: bool | None = None
     mfa_enabled: bool | None = None
 
@@ -79,9 +71,7 @@ class RoleResponse(BaseModel):
     tenant_id: uuid.UUID
     name: str
     description: str | None = None
-    permissions: list[str] = Field(
-        default_factory=list
-    )
+    permissions: list[str] = Field(default_factory=list)
     is_system: bool
     is_default: bool
     created_at: datetime
@@ -92,23 +82,15 @@ class RoleCreate(BaseModel):
     """Create a custom role."""
 
     name: str = Field(min_length=1, max_length=100)
-    description: str | None = Field(
-        None, max_length=500
-    )
-    permissions: list[str] = Field(
-        default_factory=list
-    )
+    description: str | None = Field(None, max_length=500)
+    permissions: list[str] = Field(default_factory=list)
 
 
 class RoleUpdate(BaseModel):
     """Update a role."""
 
-    name: str | None = Field(
-        None, min_length=1, max_length=100
-    )
-    description: str | None = Field(
-        None, max_length=500
-    )
+    name: str | None = Field(None, min_length=1, max_length=100)
+    description: str | None = Field(None, max_length=500)
     permissions: list[str] | None = None
 
 

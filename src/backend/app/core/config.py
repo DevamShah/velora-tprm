@@ -32,17 +32,11 @@ class Settings(BaseSettings):
     )
 
     # Redis — required for caching and rate limiting
-    REDIS_URL: str = Field(
-        ..., description="Redis connection string"
-    )
+    REDIS_URL: str = Field(..., description="Redis connection string")
 
     # S3-compatible object storage
-    S3_ENDPOINT: str = Field(
-        ..., description="S3-compatible endpoint URL"
-    )
-    S3_BUCKET: str = Field(
-        ..., description="S3 bucket name for file storage"
-    )
+    S3_ENDPOINT: str = Field(..., description="S3-compatible endpoint URL")
+    S3_BUCKET: str = Field(..., description="S3 bucket name for file storage")
 
     # JWT authentication
     JWT_SECRET_KEY: str = Field(
@@ -92,9 +86,7 @@ class Settings(BaseSettings):
         allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         upper = value.upper()
         if upper not in allowed:
-            raise ValueError(
-                f"LOG_LEVEL must be one of {allowed}"
-            )
+            raise ValueError(f"LOG_LEVEL must be one of {allowed}")
         return upper
 
 

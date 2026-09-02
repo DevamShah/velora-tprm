@@ -48,21 +48,15 @@ router = APIRouter(prefix="/scoring", tags=["scoring"])
 @router.get(
     "/models",
     response_model=list[ScoringModelResponse],
-    dependencies=[
-        Depends(require_permission("scoring.read"))
-    ],
+    dependencies=[Depends(require_permission("scoring.read"))],
 )
 async def list_models(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[ScoringModelResponse]:
     """List scoring models for the current tenant."""
     service = ScoringService(session)
-    return await service.list_models(
-        current_user["tenant_id"]
-    )
+    return await service.list_models(current_user["tenant_id"])
 
 
 # -- Create Scoring Model -----------------------------------------
@@ -72,22 +66,16 @@ async def list_models(
     "/models",
     response_model=ScoringModelResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_permission("scoring.write"))
-    ],
+    dependencies=[Depends(require_permission("scoring.write"))],
 )
 async def create_model(
     body: ScoringModelCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ScoringModelResponse:
     """Create a new scoring model."""
     service = ScoringService(session)
-    return await service.create_model(
-        current_user["tenant_id"], body
-    )
+    return await service.create_model(current_user["tenant_id"], body)
 
 
 # -- Update Scoring Model -----------------------------------------
@@ -96,17 +84,13 @@ async def create_model(
 @router.put(
     "/models/{model_id}",
     response_model=ScoringModelResponse,
-    dependencies=[
-        Depends(require_permission("scoring.write"))
-    ],
+    dependencies=[Depends(require_permission("scoring.write"))],
 )
 async def update_model(
     model_id: uuid.UUID,
     body: ScoringModelUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ScoringModelResponse:
     """Update an existing scoring model."""
     service = ScoringService(session)
@@ -128,16 +112,12 @@ async def update_model(
 @router.post(
     "/calculate/bulk",
     response_model=BulkCalculateResponse,
-    dependencies=[
-        Depends(require_permission("scoring.write"))
-    ],
+    dependencies=[Depends(require_permission("scoring.write"))],
 )
 async def bulk_calculate(
     body: BulkCalculateRequest,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> BulkCalculateResponse:
     """Calculate scores for multiple vendors at once."""
     service = ScoringService(session)
@@ -154,17 +134,13 @@ async def bulk_calculate(
 @router.post(
     "/calculate/{vendor_id}",
     response_model=ScoreBreakdown,
-    dependencies=[
-        Depends(require_permission("scoring.write"))
-    ],
+    dependencies=[Depends(require_permission("scoring.write"))],
 )
 async def calculate_score(
     vendor_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
-    body: CalculateRequest = CalculateRequest(),
+    current_user: Annotated[dict, Depends(get_current_user)],
+    body: CalculateRequest | None = None,
 ) -> ScoreBreakdown:
     """Calculate risk score for a vendor."""
     service = ScoringService(session)
@@ -172,13 +148,13 @@ async def calculate_score(
         result = await service.calculate_score(
             current_user["tenant_id"],
             vendor_id,
-            body.scoring_model_id,
+            body.scoring_model_id if body else None,
         )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
-        )
+        ) from exc
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -193,16 +169,12 @@ async def calculate_score(
 @router.get(
     "/vendors/{vendor_id}",
     response_model=ScoreBreakdown,
-    dependencies=[
-        Depends(require_permission("scoring.read"))
-    ],
+    dependencies=[Depends(require_permission("scoring.read"))],
 )
 async def get_vendor_score(
     vendor_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ScoreBreakdown:
     """Get current score for a vendor."""
     service = ScoringService(session)
@@ -223,16 +195,12 @@ async def get_vendor_score(
 @router.get(
     "/vendors/{vendor_id}/history",
     response_model=ScoreHistoryResponse,
-    dependencies=[
-        Depends(require_permission("scoring.read"))
-    ],
+    dependencies=[Depends(require_permission("scoring.read"))],
 )
 async def get_score_history(
     vendor_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ScoreHistoryResponse:
     """Get historical scores for a vendor."""
     service = ScoringService(session)
@@ -247,18 +215,12 @@ async def get_score_history(
 @router.get(
     "/portfolio",
     response_model=PortfolioSummary,
-    dependencies=[
-        Depends(require_permission("scoring.read"))
-    ],
+    dependencies=[Depends(require_permission("scoring.read"))],
 )
 async def get_portfolio_summary(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> PortfolioSummary:
     """Get aggregate scoring summary across portfolio."""
     service = ScoringService(session)
-    return await service.get_portfolio_summary(
-        current_user["tenant_id"]
-    )
+    return await service.get_portfolio_summary(current_user["tenant_id"])

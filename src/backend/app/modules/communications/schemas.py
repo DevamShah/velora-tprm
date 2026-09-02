@@ -88,12 +88,8 @@ class PreferenceUpdate(BaseModel):
 
     category: str = Field(min_length=1, max_length=100)
     channel_config: dict[str, Any] | None = None
-    quiet_hours_start: str | None = Field(
-        None, max_length=5
-    )
-    quiet_hours_end: str | None = Field(
-        None, max_length=5
-    )
+    quiet_hours_start: str | None = Field(None, max_length=5)
+    quiet_hours_end: str | None = Field(None, max_length=5)
 
 
 # -- Email Template Schemas -----------------------------------------
@@ -112,9 +108,7 @@ class EmailTemplateCreate(BaseModel):
 class EmailTemplateUpdate(BaseModel):
     """Update an email template."""
 
-    name: str | None = Field(
-        None, min_length=1, max_length=255
-    )
+    name: str | None = Field(None, min_length=1, max_length=255)
     subject_template: str | None = None
     body_template: str | None = None
     variables: dict[str, Any] | None = None

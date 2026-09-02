@@ -50,8 +50,9 @@ class AIService:
         query = (
             select(Assessment)
             .options(
-                selectinload(Assessment.responses).
-                selectinload(QuestionnaireResponse.question),
+                selectinload(Assessment.responses).selectinload(
+                    QuestionnaireResponse.question
+                ),
             )
             .where(
                 Assessment.id == assessment_id,
@@ -74,14 +75,10 @@ class AIService:
             resp.ai_prefilled = True
             resp.ai_confidence = 0.82
             resp.response_text = self._mock_answer(
-                resp.question.question_text
-                if resp.question
-                else "Unknown"
+                resp.question.question_text if resp.question else "Unknown"
             )
             resp.review_status = "ai_pending"
-            resp.responded_at = datetime.now(
-                UTC
-            )
+            resp.responded_at = datetime.now(UTC)
             filled += 1
 
         await self._session.flush()
@@ -115,9 +112,7 @@ class AIService:
             EvidenceControlMapping.tenant_id == tenant_id,
             EvidenceControlMapping.verified.is_(False),
         )
-        ecm_result = await self._session.execute(
-            ecm_query
-        )
+        ecm_result = await self._session.execute(ecm_query)
         for m in ecm_result.scalars().all():
             items.append(
                 ReviewQueueItem(
@@ -137,31 +132,23 @@ class AIService:
         resp_query = select(QuestionnaireResponse).where(
             QuestionnaireResponse.tenant_id == tenant_id,
             QuestionnaireResponse.ai_prefilled.is_(True),
-            QuestionnaireResponse.review_status
-            == "ai_pending",
+            QuestionnaireResponse.review_status == "ai_pending",
         )
-        resp_result = await self._session.execute(
-            resp_query
-        )
+        resp_result = await self._session.execute(resp_query)
         for r in resp_result.scalars().all():
             items.append(
                 ReviewQueueItem(
                     id=r.id,
                     item_type="ai_response",
                     title=f"AI response {str(r.id)[:8]}",
-                    description=(
-                        f"Confidence: "
-                        f"{r.ai_confidence or 0:.0%}"
-                    ),
+                    description=(f"Confidence: {r.ai_confidence or 0:.0%}"),
                     confidence=r.ai_confidence or 0.0,
                     created_at=r.created_at,
                 )
             )
 
         items.sort(key=lambda x: x.confidence)
-        return ReviewQueueResponse(
-            items=items, total=len(items)
-        )
+        return ReviewQueueResponse(items=items, total=len(items))
 
     # -- Submit Review ----------------------------------------------
 
@@ -173,12 +160,8 @@ class AIService:
     ) -> ReviewSubmitResponse | None:
         """Process a review decision on a queue item."""
         if data.item_type.value == "evidence_mapping":
-            return await self._review_mapping(
-                tenant_id, item_id, data
-            )
-        return await self._review_response(
-            tenant_id, item_id, data
-        )
+            return await self._review_mapping(tenant_id, item_id, data)
+        return await self._review_response(tenant_id, item_id, data)
 
     # -- Usage Stats ------------------------------------------------
 
@@ -211,8 +194,7 @@ class AIService:
         result = await self._session.execute(
             select(EvidenceControlMapping).where(
                 EvidenceControlMapping.id == item_id,
-                EvidenceControlMapping.tenant_id
-                == tenant_id,
+                EvidenceControlMapping.tenant_id == tenant_id,
             )
         )
         mapping = result.scalars().first()
@@ -240,8 +222,7 @@ class AIService:
         result = await self._session.execute(
             select(QuestionnaireResponse).where(
                 QuestionnaireResponse.id == item_id,
-                QuestionnaireResponse.tenant_id
-                == tenant_id,
+                QuestionnaireResponse.tenant_id == tenant_id,
             )
         )
         resp = result.scalars().first()

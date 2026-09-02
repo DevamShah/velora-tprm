@@ -37,9 +37,7 @@ from app.modules.evidence.service import EvidenceService
 
 logger = get_logger(__name__)
 
-router = APIRouter(
-    prefix="/evidence", tags=["evidence"]
-)
+router = APIRouter(prefix="/evidence", tags=["evidence"])
 
 
 # -- Upload URL -----------------------------------------------------
@@ -49,16 +47,12 @@ router = APIRouter(
     "/upload-url",
     response_model=EvidenceUploadResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_permission("evidence.write"))
-    ],
+    dependencies=[Depends(require_permission("evidence.write"))],
 )
 async def upload_evidence(
     body: EvidenceUploadRequest,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> EvidenceUploadResponse:
     """Generate a presigned upload URL and create record."""
     service = EvidenceService(session)
@@ -75,16 +69,12 @@ async def upload_evidence(
 @router.post(
     "/{evidence_id}/process",
     response_model=EvidenceDetailResponse,
-    dependencies=[
-        Depends(require_permission("evidence.write"))
-    ],
+    dependencies=[Depends(require_permission("evidence.write"))],
 )
 async def process_evidence(
     evidence_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> EvidenceDetailResponse:
     """Trigger AI processing on uploaded evidence."""
     service = EvidenceService(session)
@@ -105,20 +95,14 @@ async def process_evidence(
 @router.get(
     "",
     response_model=EvidenceListResponse,
-    dependencies=[
-        Depends(require_permission("evidence.read"))
-    ],
+    dependencies=[Depends(require_permission("evidence.read"))],
 )
 async def list_evidence(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
     vendor_id: uuid.UUID | None = Query(None),
     document_type: str | None = Query(None),
-    status_filter: str | None = Query(
-        None, alias="status"
-    ),
+    status_filter: str | None = Query(None, alias="status"),
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
     page: int = Query(1, ge=1),
@@ -135,9 +119,7 @@ async def list_evidence(
         page_size=page_size,
     )
     service = EvidenceService(session)
-    return await service.list_evidence(
-        current_user["tenant_id"], filters
-    )
+    return await service.list_evidence(current_user["tenant_id"], filters)
 
 
 # -- Get Detail -----------------------------------------------------
@@ -146,22 +128,16 @@ async def list_evidence(
 @router.get(
     "/{evidence_id}",
     response_model=EvidenceDetailResponse,
-    dependencies=[
-        Depends(require_permission("evidence.read"))
-    ],
+    dependencies=[Depends(require_permission("evidence.read"))],
 )
 async def get_evidence(
     evidence_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> EvidenceDetailResponse:
     """Fetch full evidence detail."""
     service = EvidenceService(session)
-    result = await service.get_evidence(
-        current_user["tenant_id"], evidence_id
-    )
+    result = await service.get_evidence(current_user["tenant_id"], evidence_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -176,22 +152,16 @@ async def get_evidence(
 @router.get(
     "/{evidence_id}/mappings",
     response_model=list[EvidenceControlMappingResponse],
-    dependencies=[
-        Depends(require_permission("evidence.read"))
-    ],
+    dependencies=[Depends(require_permission("evidence.read"))],
 )
 async def get_mappings(
     evidence_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[EvidenceControlMappingResponse]:
     """List control mappings for evidence."""
     service = EvidenceService(session)
-    result = await service.get_mappings(
-        current_user["tenant_id"], evidence_id
-    )
+    result = await service.get_mappings(current_user["tenant_id"], evidence_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -206,18 +176,14 @@ async def get_mappings(
 @router.put(
     "/{evidence_id}/mappings/{mapping_id}",
     response_model=EvidenceControlMappingResponse,
-    dependencies=[
-        Depends(require_permission("evidence.write"))
-    ],
+    dependencies=[Depends(require_permission("evidence.write"))],
 )
 async def verify_mapping(
     evidence_id: uuid.UUID,
     mapping_id: uuid.UUID,
     body: MappingVerifyRequest,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> EvidenceControlMappingResponse:
     """Verify or reject a control mapping."""
     service = EvidenceService(session)
@@ -242,16 +208,12 @@ async def verify_mapping(
 @router.delete(
     "/{evidence_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[
-        Depends(require_permission("evidence.write"))
-    ],
+    dependencies=[Depends(require_permission("evidence.write"))],
 )
 async def delete_evidence(
     evidence_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:
     """Soft-delete evidence."""
     service = EvidenceService(session)

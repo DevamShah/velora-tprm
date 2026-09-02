@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
@@ -49,38 +49,25 @@ class MonitoringService:
         filters: AlertFilterParams,
     ) -> AlertListResponse:
         """List alerts with pagination and filters."""
-        base = select(Alert).where(
-            Alert.tenant_id == tenant_id
-        )
+        base = select(Alert).where(Alert.tenant_id == tenant_id)
         base = self._apply_alert_filters(base, filters)
 
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
-        total = (
-            await self._session.execute(count_q)
-        ).scalar() or 0
+        count_q = select(func.count()).select_from(base.subquery())
+        total = (await self._session.execute(count_q)).scalar() or 0
 
-        col = getattr(
-            Alert, filters.sort_by, Alert.created_at
-        )
+        col = getattr(Alert, filters.sort_by, Alert.created_at)
         if filters.sort_order.value == "desc":
             base = base.order_by(col.desc())
         else:
             base = base.order_by(col.asc())
 
         offset = (filters.page - 1) * filters.page_size
-        base = base.offset(offset).limit(
-            filters.page_size
-        )
+        base = base.offset(offset).limit(filters.page_size)
         result = await self._session.execute(base)
         alerts = result.scalars().all()
 
         return AlertListResponse(
-            items=[
-                self._to_alert_response(a)
-                for a in alerts
-            ],
+            items=[self._to_alert_response(a) for a in alerts],
             total=total,
             page=filters.page,
             page_size=filters.page_size,
@@ -114,17 +101,13 @@ class MonitoringService:
         user_id: uuid.UUID,
     ) -> AlertResponse | None:
         """Mark an alert as acknowledged."""
-        alert = await self._get_alert_or_none(
-            tenant_id, alert_id
-        )
+        alert = await self._get_alert_or_none(tenant_id, alert_id)
         if alert is None:
             return None
 
         alert.status = "acknowledged"
         alert.acknowledged_by = user_id
-        alert.acknowledged_at = datetime.now(
-            UTC
-        )
+        alert.acknowledged_at = datetime.now(UTC)
         await self._session.flush()
         logger.info(
             "alert_acknowledged",
@@ -142,9 +125,7 @@ class MonitoringService:
         notes: str | None,
     ) -> AlertResponse | None:
         """Mark an alert as resolved."""
-        alert = await self._get_alert_or_none(
-            tenant_id, alert_id
-        )
+        alert = await self._get_alert_or_none(tenant_id, alert_id)
         if alert is None:
             return None
 
@@ -167,9 +148,7 @@ class MonitoringService:
         alert_id: uuid.UUID,
     ) -> AlertResponse | None:
         """Suppress an alert."""
-        alert = await self._get_alert_or_none(
-            tenant_id, alert_id
-        )
+        alert = await self._get_alert_or_none(tenant_id, alert_id)
         if alert is None:
             return None
 
@@ -200,10 +179,7 @@ class MonitoringService:
         events = result.scalars().all()
         return VendorTimelineResponse(
             vendor_id=vendor_id,
-            events=[
-                self._to_timeline_event(e)
-                for e in events
-            ],
+            events=[self._to_timeline_event(e) for e in events],
             total=len(events),
         )
 
@@ -215,14 +191,10 @@ class MonitoringService:
     ) -> list[AlertRuleResponse]:
         """List all alert rules for a tenant."""
         result = await self._session.execute(
-            select(AlertRule).where(
-                AlertRule.tenant_id == tenant_id
-            )
+            select(AlertRule).where(AlertRule.tenant_id == tenant_id)
         )
         rules = result.scalars().all()
-        return [
-            self._to_rule_response(r) for r in rules
-        ]
+        return [self._to_rule_response(r) for r in rules]
 
     async def create_alert_rule(
         self,
@@ -263,9 +235,7 @@ class MonitoringService:
         if rule is None:
             return None
 
-        update_data = data.model_dump(
-            exclude_unset=True
-        )
+        update_data = data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(rule, field, value)
 
@@ -299,9 +269,7 @@ class MonitoringService:
         self._session.add(signal)
         await self._session.flush()
 
-        alerts_created = await self._evaluate_rules(
-            tenant_id, signal
-        )
+        alerts_created = await self._evaluate_rules(tenant_id, signal)
         signal.processed = True
         await self._session.flush()
 
@@ -351,9 +319,7 @@ class MonitoringService:
                 alert = Alert(
                     tenant_id=tenant_id,
                     vendor_id=signal.vendor_id,
-                    priority=self._severity_to_priority(
-                        signal.severity
-                    ),
+                    priority=self._severity_to_priority(signal.severity),
                     status="new",
                     title=f"[{rule.name}] {signal.title}",
                     description=signal.description,
@@ -385,16 +351,12 @@ class MonitoringService:
                     return False
             elif signal.severity != severity_list:
                 return False
-        if "source" in conditions:
-            if signal.source != conditions["source"]:
-                return False
-        if "signal_type" in conditions:
-            if (
-                signal.signal_type
-                != conditions["signal_type"]
-            ):
-                return False
-        return True
+        if "source" in conditions and signal.source != conditions["source"]:
+            return False
+        return not (
+            "signal_type" in conditions
+            and signal.signal_type != conditions["signal_type"]
+        )
 
     @staticmethod
     def _severity_to_priority(severity: str) -> str:
@@ -409,21 +371,17 @@ class MonitoringService:
         return mapping.get(severity, "p3")
 
     @staticmethod
-    def _apply_alert_filters(query, filters):
+    def _apply_alert_filters(
+        query: Select[tuple[Alert]],
+        filters: AlertFilterParams,
+    ) -> Select[tuple[Alert]]:
         """Apply WHERE clauses for alert filters."""
         if filters.priority:
-            query = query.where(
-                Alert.priority
-                == filters.priority.value
-            )
+            query = query.where(Alert.priority == filters.priority.value)
         if filters.status:
-            query = query.where(
-                Alert.status == filters.status.value
-            )
+            query = query.where(Alert.status == filters.status.value)
         if filters.vendor_id:
-            query = query.where(
-                Alert.vendor_id == filters.vendor_id
-            )
+            query = query.where(Alert.vendor_id == filters.vendor_id)
         return query
 
     @staticmethod

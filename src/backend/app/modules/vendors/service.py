@@ -13,7 +13,7 @@ import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -48,9 +48,7 @@ class VendorService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
         self._settings = get_settings()
-        self._encryptor = FieldEncryptor(
-            self._settings.ENCRYPTION_KEY
-        )
+        self._encryptor = FieldEncryptor(self._settings.ENCRYPTION_KEY)
 
     # ── Create ─────────────────────────────────────────────
 
@@ -109,9 +107,7 @@ class VendorService:
             Vendor.deleted_at.is_(None),
         )
         base = self._apply_filters(base, filters)
-        count_q = select(func.count()).select_from(
-            base.subquery()
-        )
+        count_q = select(func.count()).select_from(base.subquery())
         total_result = await self._session.execute(count_q)
         total = total_result.scalar() or 0
 
@@ -164,20 +160,17 @@ class VendorService:
         data: VendorUpdate,
     ) -> VendorResponse | None:
         """Update an existing vendor. Returns None if not found."""
-        vendor = await self._get_vendor_or_none(
-            tenant_id, vendor_id
-        )
+        vendor = await self._get_vendor_or_none(tenant_id, vendor_id)
         if vendor is None:
             return None
 
         update_data = data.model_dump(exclude_unset=True)
-        email_value = update_data.pop(
-            "primary_contact_email", None
-        )
+        email_value = update_data.pop("primary_contact_email", None)
 
-        for field, value in update_data.items():
-            if hasattr(value, "value"):
-                value = value.value
+        for field, raw_value in update_data.items():
+            value = (
+                raw_value.value if hasattr(raw_value, "value") else raw_value
+            )
             setattr(vendor, field, value)
 
         if email_value is not None:
@@ -195,9 +188,7 @@ class VendorService:
         vendor_id: uuid.UUID,
     ) -> bool:
         """Soft-delete a vendor. Returns False if not found."""
-        vendor = await self._get_vendor_or_none(
-            tenant_id, vendor_id
-        )
+        vendor = await self._get_vendor_or_none(tenant_id, vendor_id)
         if vendor is None:
             return False
 
@@ -223,9 +214,7 @@ class VendorService:
             return BulkImportResult(
                 error_count=1,
                 errors=[
-                    BulkImportError(
-                        row=0, message=f"CSV parse error: {exc}"
-                    )
+                    BulkImportError(row=0, message=f"CSV parse error: {exc}")
                 ],
             )
 
@@ -235,11 +224,7 @@ class VendorService:
                 await self.create_vendor(tenant_id, vendor_data)
                 success_count += 1
             except Exception as exc:
-                errors.append(
-                    BulkImportError(
-                        row=row_num, message=str(exc)
-                    )
-                )
+                errors.append(BulkImportError(row=row_num, message=str(exc)))
 
         logger.info(
             "bulk_import_complete",
@@ -260,9 +245,7 @@ class VendorService:
         vendor_id: uuid.UUID,
     ) -> str | None:
         """Calculate and persist tier based on vendor attributes."""
-        vendor = await self._get_vendor_or_none(
-            tenant_id, vendor_id
-        )
+        vendor = await self._get_vendor_or_none(tenant_id, vendor_id)
         if vendor is None:
             return None
 
@@ -285,9 +268,7 @@ class VendorService:
         data: VendorContactCreate,
     ) -> VendorContactResponse | None:
         """Add a contact to a vendor."""
-        vendor = await self._get_vendor_or_none(
-            tenant_id, vendor_id
-        )
+        vendor = await self._get_vendor_or_none(tenant_id, vendor_id)
         if vendor is None:
             return None
 
@@ -315,9 +296,7 @@ class VendorService:
         vendor_id: uuid.UUID,
     ) -> list[VendorContactResponse] | None:
         """List contacts for a vendor. None if vendor not found."""
-        vendor = await self._get_vendor_or_none(
-            tenant_id, vendor_id
-        )
+        vendor = await self._get_vendor_or_none(tenant_id, vendor_id)
         if vendor is None:
             return None
 
@@ -386,11 +365,11 @@ class VendorService:
     ) -> None:
         """Encrypt primary contact email and store hash."""
         if email:
-            vendor.primary_contact_email_encrypted = (
-                self._encryptor.encrypt(email)
+            vendor.primary_contact_email_encrypted = self._encryptor.encrypt(
+                email
             )
-            vendor.primary_contact_email_hash = (
-                self._encryptor.hmac_hash(email)
+            vendor.primary_contact_email_hash = self._encryptor.hmac_hash(
+                email
             )
         else:
             vendor.primary_contact_email_encrypted = None
@@ -404,14 +383,10 @@ class VendorService:
     ) -> None:
         """Encrypt contact email and phone fields."""
         if email is not None:
-            contact.email_encrypted = (
-                self._encryptor.encrypt(email)
-            )
+            contact.email_encrypted = self._encryptor.encrypt(email)
             contact.email_hash = self._encryptor.hmac_hash(email)
         if phone is not None:
-            contact.phone_encrypted = (
-                self._encryptor.encrypt(phone)
-            )
+            contact.phone_encrypted = self._encryptor.encrypt(phone)
             contact.phone_hash = self._encryptor.hmac_hash(phone)
 
     def _to_response(self, vendor: Vendor) -> VendorResponse:
@@ -429,7 +404,11 @@ class VendorService:
         try:
             contacts_count = len(vendor.contacts)
         except Exception:
-            pass
+            logger.warning(
+                "vendors.contacts_unavailable",
+                vendor_id=str(vendor.id),
+                exc_info=True,
+            )
 
         return VendorResponse(
             id=vendor.id,
@@ -463,9 +442,7 @@ class VendorService:
             updated_at=vendor.updated_at,
         )
 
-    def _to_detail_response(
-        self, vendor: Vendor
-    ) -> VendorDetailResponse:
+    def _to_detail_response(self, vendor: Vendor) -> VendorDetailResponse:
         """Map a Vendor with relations to VendorDetailResponse."""
         email = None
         if vendor.primary_contact_email_encrypted:
@@ -477,8 +454,7 @@ class VendorService:
                 email = None
 
         contacts = [
-            self._to_contact_response(c)
-            for c in (vendor.contacts or [])
+            self._to_contact_response(c) for c in (vendor.contacts or [])
         ]
         enrichments = [
             VendorEnrichmentResponse(
@@ -534,18 +510,14 @@ class VendorService:
         email = None
         if contact.email_encrypted:
             try:
-                email = self._encryptor.decrypt(
-                    contact.email_encrypted
-                )
+                email = self._encryptor.decrypt(contact.email_encrypted)
             except Exception:
                 email = None
 
         phone = None
         if contact.phone_encrypted:
             try:
-                phone = self._encryptor.decrypt(
-                    contact.phone_encrypted
-                )
+                phone = self._encryptor.decrypt(contact.phone_encrypted)
             except Exception:
                 phone = None
 
@@ -564,20 +536,18 @@ class VendorService:
         )
 
     @staticmethod
-    def _apply_filters(query, filters: VendorFilterParams):
+    def _apply_filters(
+        query: Select[tuple[Vendor]],
+        filters: VendorFilterParams,
+    ) -> Select[tuple[Vendor]]:
         """Apply WHERE clauses for status, tier, search, tags."""
         if filters.status:
-            query = query.where(
-                Vendor.status == filters.status.value
-            )
+            query = query.where(Vendor.status == filters.status.value)
         if filters.tier:
-            query = query.where(
-                Vendor.tier == filters.tier.value
-            )
+            query = query.where(Vendor.tier == filters.tier.value)
         if filters.data_classification:
             query = query.where(
-                Vendor.data_classification
-                == filters.data_classification.value
+                Vendor.data_classification == filters.data_classification.value
             )
         if filters.business_criticality:
             query = query.where(
@@ -593,13 +563,14 @@ class VendorService:
                 )
             )
         if filters.tags:
-            query = query.where(
-                Vendor.tags.overlap(filters.tags)
-            )
+            query = query.where(Vendor.tags.overlap(filters.tags))
         return query
 
     @staticmethod
-    def _apply_sorting(query, filters: VendorFilterParams):
+    def _apply_sorting(
+        query: Select[tuple[Vendor]],
+        filters: VendorFilterParams,
+    ) -> Select[tuple[Vendor]]:
         """Apply ORDER BY clause based on filter params."""
         col = getattr(Vendor, filters.sort_by, Vendor.created_at)
         if filters.sort_order.value == "desc":
@@ -619,9 +590,7 @@ class VendorService:
             "internal": 2,
             "public": 1,
         }
-        score += dc_scores.get(
-            vendor.data_classification or "", 0
-        )
+        score += dc_scores.get(vendor.data_classification or "", 0)
 
         bc_scores = {
             "critical": 4,
@@ -629,9 +598,7 @@ class VendorService:
             "medium": 2,
             "low": 1,
         }
-        score += bc_scores.get(
-            vendor.business_criticality or "", 0
-        )
+        score += bc_scores.get(vendor.business_criticality or "", 0)
 
         if vendor.contract_value:
             if vendor.contract_value >= 1_000_000:
@@ -675,19 +642,14 @@ class VendorService:
         return VendorCreate(
             name=row.get("name", "").strip(),
             domain=row.get("domain", "").strip() or None,
-            description=row.get("description", "").strip()
-            or None,
+            description=row.get("description", "").strip() or None,
             industry=row.get("industry", "").strip() or None,
             country=row.get("country", "").strip() or None,
             employee_count=employee_count,
             contract_value=contract_value,
-            primary_contact_name=row.get(
-                "primary_contact_name", ""
-            ).strip()
+            primary_contact_name=row.get("primary_contact_name", "").strip()
             or None,
-            primary_contact_email=row.get(
-                "primary_contact_email", ""
-            ).strip()
+            primary_contact_email=row.get("primary_contact_email", "").strip()
             or None,
             tags=row.get("tags", "").strip().split(",")
             if row.get("tags", "").strip()

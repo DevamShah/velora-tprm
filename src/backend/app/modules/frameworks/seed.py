@@ -13,7 +13,8 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Import auth models to resolve FK references (control_mappings.verified_by -> users.id)
+# Import auth models to resolve FK references
+# (control_mappings.verified_by -> users.id)
 import app.modules.auth.models  # noqa: F401
 from app.core.logging import get_logger
 from app.modules.frameworks.models import (
@@ -51,9 +52,7 @@ async def seed_frameworks(
         "scoring_models": 0,
     }
 
-    counts["frameworks"] = await _seed_frameworks(
-        session
-    )
+    counts["frameworks"] = await _seed_frameworks(session)
     await session.flush()
 
     counts["clauses"] = await _seed_clauses(session)
@@ -66,8 +65,8 @@ async def seed_frameworks(
     await session.flush()
 
     if tenant_id:
-        counts["scoring_models"] = (
-            await _seed_scoring_model(session, tenant_id)
+        counts["scoring_models"] = await _seed_scoring_model(
+            session, tenant_id
         )
         await session.flush()
 
@@ -82,9 +81,7 @@ async def _seed_frameworks(
     count = 0
     for fw_data in FRAMEWORKS:
         existing = await session.execute(
-            select(Framework).where(
-                Framework.id == fw_data["id"]
-            )
+            select(Framework).where(Framework.id == fw_data["id"])
         )
         if existing.scalars().first():
             continue
@@ -100,9 +97,7 @@ async def _seed_clauses(
     count = 0
     for cl_data in ALL_CLAUSES:
         existing = await session.execute(
-            select(FrameworkClause).where(
-                FrameworkClause.id == cl_data["id"]
-            )
+            select(FrameworkClause).where(FrameworkClause.id == cl_data["id"])
         )
         if existing.scalars().first():
             continue
@@ -118,15 +113,12 @@ async def _update_clause_counts(
     for fw_data in FRAMEWORKS:
         result = await session.execute(
             select(FrameworkClause).where(
-                FrameworkClause.framework_id
-                == fw_data["id"]
+                FrameworkClause.framework_id == fw_data["id"]
             )
         )
         clause_list = result.scalars().all()
         fw_result = await session.execute(
-            select(Framework).where(
-                Framework.id == fw_data["id"]
-            )
+            select(Framework).where(Framework.id == fw_data["id"])
         )
         fw_obj = fw_result.scalars().first()
         if fw_obj:
@@ -140,9 +132,7 @@ async def _seed_mappings(
     count = 0
     for mp_data in MAPPINGS:
         existing = await session.execute(
-            select(ControlMapping).where(
-                ControlMapping.id == mp_data["id"]
-            )
+            select(ControlMapping).where(ControlMapping.id == mp_data["id"])
         )
         if existing.scalars().first():
             continue
@@ -158,9 +148,7 @@ async def _seed_scoring_model(
     """Insert default scoring model for a tenant."""
     model_id = uid(f"default_model_{tenant_id}")
     existing = await session.execute(
-        select(ScoringModel).where(
-            ScoringModel.id == model_id
-        )
+        select(ScoringModel).where(ScoringModel.id == model_id)
     )
     if existing.scalars().first():
         return 0

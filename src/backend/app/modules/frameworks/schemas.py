@@ -74,9 +74,7 @@ class ClauseTreeNode(BaseModel):
     domain_tags: list[str] | None = None
     depth: int = 0
     order_index: int = 0
-    children: list[ClauseTreeNode] = Field(
-        default_factory=list
-    )
+    children: list[ClauseTreeNode] = Field(default_factory=list)
 
 
 # Self-referential model rebuild for forward refs
@@ -142,9 +140,7 @@ class FrameworkDetailResponse(BaseModel):
     clause_count: int = 0
     status: str
     structure: dict[str, Any] | None = None
-    clauses: list[ClauseTreeNode] = Field(
-        default_factory=list
-    )
+    clauses: list[ClauseTreeNode] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
@@ -168,7 +164,5 @@ class UnifiedControl(BaseModel):
     description: str | None = None
     domain_tags: list[str] | None = None
     framework_name: str
-    mapped_frameworks: list[str] = Field(
-        default_factory=list
-    )
+    mapped_frameworks: list[str] = Field(default_factory=list)
     mapping_count: int = 0

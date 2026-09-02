@@ -35,28 +35,18 @@ class Notification(TenantBase):
         nullable=False,
         index=True,
     )
-    title: Mapped[str] = mapped_column(
-        String(500), nullable=False
-    )
-    message: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
     channel: Mapped[str] = mapped_column(
         String(20), nullable=False, default="in_app"
     )
-    read: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     read_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    entity_type: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
-    entity_id: Mapped[uuid.UUID | None] = (
-        mapped_column(
-            UUID(as_uuid=True), nullable=True
-        )
+    entity_type: Mapped[str | None] = mapped_column(Text, nullable=True)
+    entity_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
     )
 
 
@@ -71,17 +61,13 @@ class NotificationPreference(TenantBase):
         nullable=False,
         index=True,
     )
-    category: Mapped[str] = mapped_column(
-        String(100), nullable=False
+    category: Mapped[str] = mapped_column(String(100), nullable=False)
+    channel_config: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    quiet_hours_start: Mapped[str | None] = mapped_column(
+        String(5), nullable=True
     )
-    channel_config: Mapped[dict | None] = (
-        mapped_column(JSONB, nullable=True)
-    )
-    quiet_hours_start: Mapped[str | None] = (
-        mapped_column(String(5), nullable=True)
-    )
-    quiet_hours_end: Mapped[str | None] = (
-        mapped_column(String(5), nullable=True)
+    quiet_hours_end: Mapped[str | None] = mapped_column(
+        String(5), nullable=True
     )
 
 
@@ -90,18 +76,10 @@ class EmailTemplate(TenantBase):
 
     __tablename__ = "email_templates"
 
-    name: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
-    subject_template: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
-    body_template: Mapped[str] = mapped_column(
-        Text, nullable=False
-    )
-    variables: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True
-    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    subject_template: Mapped[str] = mapped_column(Text, nullable=False)
+    body_template: Mapped[str] = mapped_column(Text, nullable=False)
+    variables: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     is_system: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
@@ -112,21 +90,13 @@ class CommunicationLog(TenantBase):
 
     __tablename__ = "communication_logs"
 
-    channel: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )
-    recipient: Mapped[str] = mapped_column(
-        String(500), nullable=False
-    )
-    subject: Mapped[str | None] = mapped_column(
-        String(500), nullable=True
-    )
+    channel: Mapped[str] = mapped_column(String(50), nullable=False)
+    recipient: Mapped[str] = mapped_column(String(500), nullable=False)
+    subject: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="sent"
     )
     sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    error_message: Mapped[str | None] = (
-        mapped_column(Text, nullable=True)
-    )
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)

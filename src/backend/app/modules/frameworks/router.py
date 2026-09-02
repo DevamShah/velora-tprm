@@ -37,9 +37,7 @@ from app.modules.frameworks.service import (
 
 logger = get_logger(__name__)
 
-router = APIRouter(
-    prefix="/frameworks", tags=["frameworks"]
-)
+router = APIRouter(prefix="/frameworks", tags=["frameworks"])
 
 
 # -- List Frameworks ------------------------------------------------
@@ -48,15 +46,11 @@ router = APIRouter(
 @router.get(
     "",
     response_model=FrameworkListResponse,
-    dependencies=[
-        Depends(require_permission("frameworks.read"))
-    ],
+    dependencies=[Depends(require_permission("frameworks.read"))],
 )
 async def list_frameworks(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> FrameworkListResponse:
     """List all compliance frameworks."""
     service = FrameworkService(session)
@@ -70,15 +64,11 @@ async def list_frameworks(
 @router.get(
     "/unified-controls",
     response_model=list[UnifiedControl],
-    dependencies=[
-        Depends(require_permission("frameworks.read"))
-    ],
+    dependencies=[Depends(require_permission("frameworks.read"))],
 )
 async def get_unified_controls(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[UnifiedControl]:
     """Get deduplicated controls across all frameworks."""
     service = FrameworkService(session)
@@ -91,16 +81,12 @@ async def get_unified_controls(
 @router.get(
     "/{framework_id}",
     response_model=FrameworkDetailResponse,
-    dependencies=[
-        Depends(require_permission("frameworks.read"))
-    ],
+    dependencies=[Depends(require_permission("frameworks.read"))],
 )
 async def get_framework(
     framework_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> FrameworkDetailResponse:
     """Fetch framework detail with clause tree."""
     service = FrameworkService(session)
@@ -119,16 +105,12 @@ async def get_framework(
 @router.get(
     "/{framework_id}/clauses",
     response_model=list,
-    dependencies=[
-        Depends(require_permission("frameworks.read"))
-    ],
+    dependencies=[Depends(require_permission("frameworks.read"))],
 )
 async def get_clause_tree(
     framework_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list:
     """Get hierarchical clause structure for a framework."""
     service = FrameworkService(session)
@@ -141,17 +123,13 @@ async def get_clause_tree(
 @router.get(
     "/{framework_id}/clauses/{clause_id}/mappings",
     response_model=list[MappingResponse],
-    dependencies=[
-        Depends(require_permission("frameworks.read"))
-    ],
+    dependencies=[Depends(require_permission("frameworks.read"))],
 )
 async def get_clause_mappings(
     framework_id: uuid.UUID,
     clause_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[MappingResponse]:
     """Get cross-framework mappings for a clause."""
     service = FrameworkService(session)

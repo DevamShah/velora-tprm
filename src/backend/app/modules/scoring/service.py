@@ -52,10 +52,7 @@ class ScoringService:
             .order_by(ScoringModel.created_at.desc())
         )
         result = await self._session.execute(query)
-        return [
-            self._to_model_response(m)
-            for m in result.scalars().all()
-        ]
+        return [self._to_model_response(m) for m in result.scalars().all()]
 
     async def create_model(
         self,
@@ -63,16 +60,14 @@ class ScoringService:
         data: ScoringModelCreate,
     ) -> ScoringModelResponse:
         """Create a new scoring model."""
-        config = {
-            "dimensions": [
-                d.model_dump() for d in data.dimensions
-            ]
-        }
+        config = {"dimensions": [d.model_dump() for d in data.dimensions]}
         model = ScoringModel(
-            tenant_id=tenant_id, name=data.name,
+            tenant_id=tenant_id,
+            name=data.name,
             description=data.description,
             method=data.method.value,
-            is_default=data.is_default, config=config,
+            is_default=data.is_default,
+            config=config,
             inherent_risk_factors=data.inherent_risk_factors,
             risk_thresholds=data.risk_thresholds,
         )
@@ -97,13 +92,12 @@ class ScoringService:
         dims = update_data.pop("dimensions", None)
         if dims is not None:
             model.config = {
-                "dimensions": [
-                    d.model_dump() for d in data.dimensions
-                ]
+                "dimensions": [d.model_dump() for d in data.dimensions]
             }
-        for field, value in update_data.items():
-            if hasattr(value, "value"):
-                value = value.value
+        for field, raw_value in update_data.items():
+            value = (
+                raw_value.value if hasattr(raw_value, "value") else raw_value
+            )
             setattr(model, field, value)
         if data.is_default:
             await self._clear_default(tenant_id, exclude=model_id)
@@ -117,21 +111,13 @@ class ScoringService:
         scoring_model_id: uuid.UUID | None = None,
     ) -> ScoreBreakdown | None:
         """Run scoring algorithm for a vendor."""
-        vendor = await self._get_vendor(
-            tenant_id, vendor_id
-        )
+        vendor = await self._get_vendor(tenant_id, vendor_id)
         if vendor is None:
             return None
-        model = await self._resolve_model(
-            tenant_id, scoring_model_id
-        )
+        model = await self._resolve_model(tenant_id, scoring_model_id)
         if model is None:
-            raise ValueError(
-                "No scoring model found for tenant"
-            )
-        return await self._execute_scoring(
-            tenant_id, vendor, model
-        )
+            raise ValueError("No scoring model found for tenant")
+        return await self._execute_scoring(tenant_id, vendor, model)
 
     async def bulk_calculate(
         self,
@@ -150,15 +136,19 @@ class ScoringService:
                 if r:
                     results.append(r)
                 else:
-                    errors.append({
-                        "vendor_id": str(vid),
-                        "error": "Vendor not found",
-                    })
+                    errors.append(
+                        {
+                            "vendor_id": str(vid),
+                            "error": "Vendor not found",
+                        }
+                    )
             except Exception as exc:
-                errors.append({
-                    "vendor_id": str(vid),
-                    "error": str(exc),
-                })
+                errors.append(
+                    {
+                        "vendor_id": str(vid),
+                        "error": str(exc),
+                    }
+                )
         return BulkCalculateResponse(
             calculated=len(results),
             failed=len(errors),
@@ -188,9 +178,7 @@ class ScoringService:
         thresholds = await self._get_thresholds(
             tenant_id, score.scoring_model_id
         )
-        return self._score_to_breakdown(
-            score, thresholds
-        )
+        return self._score_to_breakdown(score, thresholds)
 
     async def get_score_history(
         self,
@@ -226,27 +214,20 @@ class ScoringService:
         self, tenant_id: uuid.UUID
     ) -> PortfolioSummary:
         """Aggregate scoring summary across portfolio."""
-        total_vendors = await self._count_vendors(
-            tenant_id
-        )
+        total_vendors = await self._count_vendors(tenant_id)
         latest = await self._latest_scores(tenant_id)
         if not latest:
-            return PortfolioSummary(
-                total_vendors=total_vendors
-            )
+            return PortfolioSummary(total_vendors=total_vendors)
 
         avg = round(
-            sum(s.overall_score for s in latest)
-            / len(latest),
+            sum(s.overall_score for s in latest) / len(latest),
             2,
         )
         tier_dist = TierDistribution()
         risk_counts: dict[str, int] = {}
         for s in latest:
             level = engine.classify_risk(s.overall_score, None)
-            risk_counts[level] = (
-                risk_counts.get(level, 0) + 1
-            )
+            risk_counts[level] = risk_counts.get(level, 0) + 1
             setattr(
                 tier_dist,
                 level,
@@ -261,8 +242,10 @@ class ScoringService:
         )
 
     async def _execute_scoring(
-        self, tenant_id: uuid.UUID,
-        vendor: Vendor, model: ScoringModel,
+        self,
+        tenant_id: uuid.UUID,
+        vendor: Vendor,
+        model: ScoringModel,
     ) -> ScoreBreakdown:
         """Core scoring logic — calculate and persist."""
         dims = engine.extract_dimensions(model)
@@ -272,66 +255,104 @@ class ScoringService:
         inherent = engine.calculate_inherent(vendor, model)
         residual, external = max(0.0, overall), vendor.external_rating_score
         score = VendorScore(
-            tenant_id=tenant_id, vendor_id=vendor.id,
-            scoring_model_id=model.id, overall_score=overall,
-            dimension_scores=dim_scores, inherent_score=inherent,
-            residual_score=residual, external_score=external,
-            input_snapshot=engine.build_snapshot(vendor), calculated_at=now,
+            tenant_id=tenant_id,
+            vendor_id=vendor.id,
+            scoring_model_id=model.id,
+            overall_score=overall,
+            dimension_scores=dim_scores,
+            inherent_score=inherent,
+            residual_score=residual,
+            external_score=external,
+            input_snapshot=engine.build_snapshot(vendor),
+            calculated_at=now,
         )
         self._session.add(score)
-        self._session.add(ScoreHistory(
-            tenant_id=tenant_id, vendor_id=vendor.id,
-            overall_score=overall, dimension_scores=dim_scores,
-            recorded_at=now,
-        ))
+        self._session.add(
+            ScoreHistory(
+                tenant_id=tenant_id,
+                vendor_id=vendor.id,
+                overall_score=overall,
+                dimension_scores=dim_scores,
+                recorded_at=now,
+            )
+        )
         vendor.inherent_risk_score = inherent
         vendor.residual_risk_score = residual
         await self._session.flush()
         return ScoreBreakdown(
-            id=score.id, vendor_id=vendor.id,
-            scoring_model_id=model.id, overall_score=overall,
-            dimension_scores=dim_scores, inherent_score=inherent,
-            residual_score=residual, external_score=external,
+            id=score.id,
+            vendor_id=vendor.id,
+            scoring_model_id=model.id,
+            overall_score=overall,
+            dimension_scores=dim_scores,
+            inherent_score=inherent,
+            residual_score=residual,
+            external_score=external,
             risk_level=engine.classify_risk(overall, model.risk_thresholds),
-            calculated_at=now, created_at=score.created_at,
+            calculated_at=now,
+            created_at=score.created_at,
         )
 
     async def _get_model_or_none(
-        self, tenant_id: uuid.UUID, model_id: uuid.UUID,
+        self,
+        tenant_id: uuid.UUID,
+        model_id: uuid.UUID,
     ) -> ScoringModel | None:
-        r = await self._session.execute(select(ScoringModel).where(
-            ScoringModel.id == model_id, ScoringModel.tenant_id == tenant_id))
+        r = await self._session.execute(
+            select(ScoringModel).where(
+                ScoringModel.id == model_id,
+                ScoringModel.tenant_id == tenant_id,
+            )
+        )
         return r.scalars().first()
 
     async def _resolve_model(
-        self, tenant_id: uuid.UUID, model_id: uuid.UUID | None,
+        self,
+        tenant_id: uuid.UUID,
+        model_id: uuid.UUID | None,
     ) -> ScoringModel | None:
         if model_id:
             return await self._get_model_or_none(tenant_id, model_id)
-        r = await self._session.execute(select(ScoringModel).where(
-            ScoringModel.tenant_id == tenant_id, ScoringModel.is_default.is_(True)))
+        r = await self._session.execute(
+            select(ScoringModel).where(
+                ScoringModel.tenant_id == tenant_id,
+                ScoringModel.is_default.is_(True),
+            )
+        )
         return r.scalars().first()
 
     async def _get_vendor(
-        self, tenant_id: uuid.UUID, vendor_id: uuid.UUID,
+        self,
+        tenant_id: uuid.UUID,
+        vendor_id: uuid.UUID,
     ) -> Vendor | None:
-        r = await self._session.execute(select(Vendor).where(
-            Vendor.id == vendor_id, Vendor.tenant_id == tenant_id,
-            Vendor.deleted_at.is_(None)))
+        r = await self._session.execute(
+            select(Vendor).where(
+                Vendor.id == vendor_id,
+                Vendor.tenant_id == tenant_id,
+                Vendor.deleted_at.is_(None),
+            )
+        )
         return r.scalars().first()
 
     async def _clear_default(
-        self, tenant_id: uuid.UUID, exclude: uuid.UUID | None = None,
+        self,
+        tenant_id: uuid.UUID,
+        exclude: uuid.UUID | None = None,
     ) -> None:
         q = select(ScoringModel).where(
-            ScoringModel.tenant_id == tenant_id, ScoringModel.is_default.is_(True))
+            ScoringModel.tenant_id == tenant_id,
+            ScoringModel.is_default.is_(True),
+        )
         if exclude:
             q = q.where(ScoringModel.id != exclude)
         for m in (await self._session.execute(q)).scalars().all():
             m.is_default = False
 
     async def _get_thresholds(
-        self, tenant_id: uuid.UUID, model_id: uuid.UUID | None,
+        self,
+        tenant_id: uuid.UUID,
+        model_id: uuid.UUID | None,
     ) -> dict | None:
         if not model_id:
             return None
@@ -339,22 +360,30 @@ class ScoringService:
         return m.risk_thresholds if m else None
 
     async def _count_vendors(self, tenant_id: uuid.UUID) -> int:
-        r = await self._session.execute(select(func.count()).where(
-            Vendor.tenant_id == tenant_id, Vendor.deleted_at.is_(None)))
+        r = await self._session.execute(
+            select(func.count()).where(
+                Vendor.tenant_id == tenant_id, Vendor.deleted_at.is_(None)
+            )
+        )
         return r.scalar() or 0
 
     async def _latest_scores(self, tenant_id: uuid.UUID) -> list:
-        q = (select(VendorScore).where(VendorScore.tenant_id == tenant_id)
-             .distinct(VendorScore.vendor_id)
-             .order_by(VendorScore.vendor_id, VendorScore.calculated_at.desc()))
+        q = (
+            select(VendorScore)
+            .where(VendorScore.tenant_id == tenant_id)
+            .distinct(VendorScore.vendor_id)
+            .order_by(VendorScore.vendor_id, VendorScore.calculated_at.desc())
+        )
         return list((await self._session.execute(q)).scalars().all())
 
     @staticmethod
     def _score_to_breakdown(
-        score: VendorScore, thresholds: dict | None,
+        score: VendorScore,
+        thresholds: dict | None,
     ) -> ScoreBreakdown:
         return ScoreBreakdown(
-            id=score.id, vendor_id=score.vendor_id,
+            id=score.id,
+            vendor_id=score.vendor_id,
             scoring_model_id=score.scoring_model_id,
             overall_score=score.overall_score,
             dimension_scores=score.dimension_scores,
@@ -369,11 +398,15 @@ class ScoringService:
     @staticmethod
     def _to_model_response(model: ScoringModel) -> ScoringModelResponse:
         return ScoringModelResponse(
-            id=model.id, tenant_id=model.tenant_id,
-            name=model.name, description=model.description,
-            method=model.method, is_default=model.is_default,
+            id=model.id,
+            tenant_id=model.tenant_id,
+            name=model.name,
+            description=model.description,
+            method=model.method,
+            is_default=model.is_default,
             config=model.config,
             inherent_risk_factors=model.inherent_risk_factors,
             risk_thresholds=model.risk_thresholds,
-            created_at=model.created_at, updated_at=model.updated_at,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
         )

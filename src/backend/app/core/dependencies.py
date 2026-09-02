@@ -98,15 +98,18 @@ def require_permission(permission: str) -> Callable:
     Factory that returns a dependency enforcing a single permission.
 
     Usage:
-        @router.get("/foo", dependencies=[Depends(require_permission("foo.read"))])
+        @router.get(
+            "/foo",
+            dependencies=[
+                Depends(require_permission("foo.read"))
+            ],
+        )
     """
 
     async def _check(
         current_user: Annotated[dict, Depends(get_current_user)],
     ) -> dict:
-        user_perms: list[str] = current_user.get(
-            "permissions", []
-        )
+        user_perms: list[str] = current_user.get("permissions", [])
         if permission not in user_perms:
             logger.warning(
                 "permission_denied",

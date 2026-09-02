@@ -293,9 +293,7 @@ async def _seed_users(
 
         user = User(
             tenant_id=tenant_id,
-            email_encrypted=encryptor.encrypt(
-                user_def["email"]
-            ),
+            email_encrypted=encryptor.encrypt(user_def["email"]),
             email_hash=email_hash,
             first_name=user_def["first_name"],
             last_name=user_def["last_name"],

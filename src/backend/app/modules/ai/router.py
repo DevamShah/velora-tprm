@@ -44,18 +44,12 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 @router.post(
     "/auto-fill",
     response_model=AutoFillResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def auto_fill(
     body: AutoFillRequest,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AutoFillResponse:
     """Trigger AI auto-fill for an assessment."""
     service = AIService(session)
@@ -76,23 +70,15 @@ async def auto_fill(
 @router.get(
     "/review-queue",
     response_model=ReviewQueueResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def get_review_queue(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ReviewQueueResponse:
     """Get items needing human review."""
     service = AIService(session)
-    return await service.get_review_queue(
-        current_user["tenant_id"]
-    )
+    return await service.get_review_queue(current_user["tenant_id"])
 
 
 # -- Submit Review --------------------------------------------------
@@ -101,19 +87,13 @@ async def get_review_queue(
 @router.put(
     "/review-queue/{item_id}",
     response_model=ReviewSubmitResponse,
-    dependencies=[
-        Depends(
-            require_permission("assessments.write")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.write"))],
 )
 async def submit_review(
     item_id: uuid.UUID,
     body: ReviewSubmitRequest,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ReviewSubmitResponse:
     """Submit a review decision for a queue item."""
     service = AIService(session)
@@ -134,20 +114,12 @@ async def submit_review(
 @router.get(
     "/usage",
     response_model=AIUsageStats,
-    dependencies=[
-        Depends(
-            require_permission("assessments.read")
-        )
-    ],
+    dependencies=[Depends(require_permission("assessments.read"))],
 )
 async def get_usage(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> AIUsageStats:
     """Get AI usage statistics for the tenant."""
     service = AIService(session)
-    return await service.get_usage_stats(
-        current_user["tenant_id"]
-    )
+    return await service.get_usage_stats(current_user["tenant_id"])

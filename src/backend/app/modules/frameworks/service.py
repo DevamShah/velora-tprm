@@ -42,9 +42,7 @@ class FrameworkService:
         self,
     ) -> FrameworkListResponse:
         """List all frameworks with clause counts."""
-        query = select(Framework).order_by(
-            Framework.name.asc()
-        )
+        query = select(Framework).order_by(Framework.name.asc())
         result = await self._session.execute(query)
         frameworks = result.scalars().all()
 
@@ -63,9 +61,7 @@ class FrameworkService:
             )
             for fw in frameworks
         ]
-        return FrameworkListResponse(
-            items=items, total=len(items)
-        )
+        return FrameworkListResponse(items=items, total=len(items))
 
     # -- Get Framework Detail --------------------------------------
 
@@ -73,9 +69,7 @@ class FrameworkService:
         self, framework_id: uuid.UUID
     ) -> FrameworkDetailResponse | None:
         """Fetch framework with hierarchical clause tree."""
-        query = select(Framework).where(
-            Framework.id == framework_id
-        )
+        query = select(Framework).where(Framework.id == framework_id)
         result = await self._session.execute(query)
         fw = result.scalars().first()
         if fw is None:
@@ -106,10 +100,7 @@ class FrameworkService:
         """Build hierarchical clause structure."""
         query = (
             select(FrameworkClause)
-            .where(
-                FrameworkClause.framework_id
-                == framework_id
-            )
+            .where(FrameworkClause.framework_id == framework_id)
             .order_by(FrameworkClause.order_index.asc())
         )
         result = await self._session.execute(query)
@@ -125,10 +116,7 @@ class FrameworkService:
         """Get cross-framework mappings for a clause."""
         query = select(ControlMapping).where(
             (ControlMapping.source_clause_id == clause_id)
-            | (
-                ControlMapping.target_clause_id
-                == clause_id
-            )
+            | (ControlMapping.target_clause_id == clause_id)
         )
         result = await self._session.execute(query)
         mappings = result.scalars().all()
@@ -160,8 +148,7 @@ class FrameworkService:
         fw_query = select(Framework)
         fw_result = await self._session.execute(fw_query)
         fw_map: dict[uuid.UUID, str] = {
-            fw.id: fw.name
-            for fw in fw_result.scalars().all()
+            fw.id: fw.name for fw in fw_result.scalars().all()
         }
 
         # Count mappings per clause
@@ -169,9 +156,7 @@ class FrameworkService:
 
         controls: list[UnifiedControl] = []
         for clause in clauses:
-            mapped = await self._get_mapped_frameworks(
-                clause.id, fw_map
-            )
+            mapped = await self._get_mapped_frameworks(clause.id, fw_map)
             controls.append(
                 UnifiedControl(
                     control_id=clause.id,
@@ -179,13 +164,9 @@ class FrameworkService:
                     title=clause.title,
                     description=clause.description,
                     domain_tags=clause.domain_tags,
-                    framework_name=fw_map.get(
-                        clause.framework_id, "Unknown"
-                    ),
+                    framework_name=fw_map.get(clause.framework_id, "Unknown"),
                     mapped_frameworks=mapped,
-                    mapping_count=mapping_counts.get(
-                        clause.id, 0
-                    ),
+                    mapping_count=mapping_counts.get(clause.id, 0),
                 )
             )
         return controls
@@ -215,13 +196,8 @@ class FrameworkService:
 
         for c in clauses:
             node = node_map[c.id]
-            if (
-                c.parent_clause_id
-                and c.parent_clause_id in node_map
-            ):
-                node_map[c.parent_clause_id].children.append(
-                    node
-                )
+            if c.parent_clause_id and c.parent_clause_id in node_map:
+                node_map[c.parent_clause_id].children.append(node)
             else:
                 roots.append(node)
 
@@ -231,12 +207,8 @@ class FrameworkService:
         self, mapping: ControlMapping
     ) -> MappingResponse:
         """Add clause/framework names to a mapping."""
-        src = await self._get_clause_with_fw(
-            mapping.source_clause_id
-        )
-        tgt = await self._get_clause_with_fw(
-            mapping.target_clause_id
-        )
+        src = await self._get_clause_with_fw(mapping.source_clause_id)
+        tgt = await self._get_clause_with_fw(mapping.target_clause_id)
 
         return MappingResponse(
             id=mapping.id,
@@ -256,13 +228,9 @@ class FrameworkService:
             updated_at=mapping.updated_at,
         )
 
-    async def _get_clause_with_fw(
-        self, clause_id: uuid.UUID
-    ) -> tuple | None:
+    async def _get_clause_with_fw(self, clause_id: uuid.UUID) -> tuple | None:
         """Return (clause_number, title, framework_name)."""
-        query = select(FrameworkClause).where(
-            FrameworkClause.id == clause_id
-        )
+        query = select(FrameworkClause).where(FrameworkClause.id == clause_id)
         result = await self._session.execute(query)
         clause = result.scalars().first()
         if clause is None:
@@ -311,10 +279,7 @@ class FrameworkService:
         """Get framework names this clause maps to."""
         query = select(ControlMapping).where(
             (ControlMapping.source_clause_id == clause_id)
-            | (
-                ControlMapping.target_clause_id
-                == clause_id
-            )
+            | (ControlMapping.target_clause_id == clause_id)
         )
         result = await self._session.execute(query)
         mappings = result.scalars().all()
@@ -326,16 +291,12 @@ class FrameworkService:
                 if m.source_clause_id == clause_id
                 else m.source_clause_id
             )
-            clause_q = select(
-                FrameworkClause.framework_id
-            ).where(FrameworkClause.id == other_id)
-            clause_r = await self._session.execute(
-                clause_q
+            clause_q = select(FrameworkClause.framework_id).where(
+                FrameworkClause.id == other_id
             )
+            clause_r = await self._session.execute(clause_q)
             fid = clause_r.scalar()
             if fid:
                 fw_ids.add(fid)
 
-        return [
-            fw_map.get(fid, "Unknown") for fid in fw_ids
-        ]
+        return [fw_map.get(fid, "Unknown") for fid in fw_ids]

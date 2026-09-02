@@ -89,9 +89,7 @@ def create_app() -> FastAPI:
 
     # ── Rate limiting ─────────────────────────────────────
     app.state.limiter = limiter
-    app.add_exception_handler(
-        RateLimitExceeded, _rate_limit_exceeded_handler
-    )
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     # ── CORS ──────────────────────────────────────────────
     app.add_middleware(
@@ -121,34 +119,16 @@ def create_app() -> FastAPI:
     # ── Routers ───────────────────────────────────────────
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(vendors_router, prefix="/api/v1")
-    app.include_router(
-        assessments_router, prefix="/api/v1"
-    )
-    app.include_router(
-        frameworks_router, prefix="/api/v1"
-    )
-    app.include_router(
-        scoring_router, prefix="/api/v1"
-    )
-    app.include_router(
-        evidence_router, prefix="/api/v1"
-    )
+    app.include_router(assessments_router, prefix="/api/v1")
+    app.include_router(frameworks_router, prefix="/api/v1")
+    app.include_router(scoring_router, prefix="/api/v1")
+    app.include_router(evidence_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")
-    app.include_router(
-        monitoring_router, prefix="/api/v1"
-    )
-    app.include_router(
-        reports_router, prefix="/api/v1"
-    )
-    app.include_router(
-        communications_router, prefix="/api/v1"
-    )
-    app.include_router(
-        admin_router, prefix="/api/v1"
-    )
-    app.include_router(
-        findings_router, prefix="/api/v1"
-    )
+    app.include_router(monitoring_router, prefix="/api/v1")
+    app.include_router(reports_router, prefix="/api/v1")
+    app.include_router(communications_router, prefix="/api/v1")
+    app.include_router(admin_router, prefix="/api/v1")
+    app.include_router(findings_router, prefix="/api/v1")
 
     # ── Health / readiness probes ─────────────────────────
     @app.get("/health", tags=["infra"])
@@ -164,9 +144,7 @@ def create_app() -> FastAPI:
             if _engine is not None:
                 async with _engine.connect() as conn:
                     await conn.execute(
-                        __import__(
-                            "sqlalchemy"
-                        ).text("SELECT 1")
+                        __import__("sqlalchemy").text("SELECT 1")
                     )
                 checks["database"] = "ok"
             else:

@@ -76,9 +76,7 @@ class AssessmentTemplateCreate(BaseModel):
     tier_applicability: list[str] | None = None
     is_system: bool = False
     scoring_weights: dict[str, Any] | None = None
-    estimated_duration_minutes: int | None = Field(
-        None, ge=1
-    )
+    estimated_duration_minutes: int | None = Field(None, ge=1)
 
 
 class AssessmentTemplateResponse(BaseModel):
@@ -109,20 +107,14 @@ class QuestionCreate(BaseModel):
 
     question_bank_id: uuid.UUID | None = None
     template_id: uuid.UUID | None = None
-    section: str | None = Field(
-        None, max_length=255
-    )
-    subsection: str | None = Field(
-        None, max_length=255
-    )
+    section: str | None = Field(None, max_length=255)
+    subsection: str | None = Field(None, max_length=255)
     question_text: str = Field(min_length=1)
     question_type: QuestionType = QuestionType.text
     options: dict[str, Any] | None = None
     is_required: bool = True
     weight: float = Field(default=1.0, ge=0.0, le=10.0)
-    risk_domain: str | None = Field(
-        None, max_length=100
-    )
+    risk_domain: str | None = Field(None, max_length=100)
     guidance_text: str | None = None
     order_index: int = Field(default=0, ge=0)
 
@@ -166,9 +158,7 @@ class AssessmentCreate(BaseModel):
 class AssessmentUpdate(BaseModel):
     """Update assessment metadata."""
 
-    title: str | None = Field(
-        None, min_length=1, max_length=255
-    )
+    title: str | None = Field(None, min_length=1, max_length=255)
     description: str | None = None
     due_date: datetime | None = None
     assigned_to: uuid.UUID | None = None
@@ -268,9 +258,7 @@ class AssessmentDetailResponse(BaseModel):
 class QuestionnaireResponseUpdate(BaseModel):
     """Update a questionnaire response (fill or review)."""
 
-    response_value: str | None = Field(
-        None, max_length=500
-    )
+    response_value: str | None = Field(None, max_length=500)
     response_text: str | None = None
     review_status: ReviewStatus | None = None
     reviewer_notes: str | None = None
@@ -311,9 +299,7 @@ class AssessmentFilterParams(BaseModel):
     status: AssessmentStatus | None = None
     vendor_id: uuid.UUID | None = None
     template_id: uuid.UUID | None = None
-    search: str | None = Field(
-        None, max_length=255
-    )
+    search: str | None = Field(None, max_length=255)
     sort_by: str = Field(default="created_at")
     sort_order: str = Field(default="desc")
     page: int = Field(default=1, ge=1)
@@ -332,7 +318,5 @@ class AssessmentFilterParams(BaseModel):
             "updated_at",
         }
         if value not in allowed:
-            raise ValueError(
-                f"sort_by must be one of {allowed}"
-            )
+            raise ValueError(f"sort_by must be one of {allowed}")
         return value

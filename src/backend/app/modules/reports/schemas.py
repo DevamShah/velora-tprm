@@ -101,9 +101,7 @@ class ExecutiveDashboardData(BaseModel):
     """Aggregated executive dashboard data."""
 
     total_vendors: int = 0
-    vendors_by_tier: VendorsByTier = Field(
-        default_factory=VendorsByTier
-    )
+    vendors_by_tier: VendorsByTier = Field(default_factory=VendorsByTier)
     total_assessments: int = 0
     assessments_by_status: AssessmentsByStatus = Field(
         default_factory=AssessmentsByStatus
@@ -117,12 +115,8 @@ class ExecutiveDashboardData(BaseModel):
         default_factory=AlertsByPriority
     )
     avg_risk_score: float | None = None
-    recent_alerts: list[RecentAlert] = Field(
-        default_factory=list
-    )
-    top_risk_vendors: list[TopRiskVendor] = Field(
-        default_factory=list
-    )
+    recent_alerts: list[RecentAlert] = Field(default_factory=list)
+    top_risk_vendors: list[TopRiskVendor] = Field(default_factory=list)
 
 
 # -- Report Requests ------------------------------------------------

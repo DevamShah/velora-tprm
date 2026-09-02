@@ -51,22 +51,16 @@ router = APIRouter(prefix="/vendors", tags=["vendors"])
     "",
     response_model=VendorResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_permission("vendors.write"))
-    ],
+    dependencies=[Depends(require_permission("vendors.write"))],
 )
 async def create_vendor(
     body: VendorCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> VendorResponse:
     """Create a new vendor record."""
     service = VendorService(session)
-    return await service.create_vendor(
-        current_user["tenant_id"], body
-    )
+    return await service.create_vendor(current_user["tenant_id"], body)
 
 
 # ── List Vendors ───────────────────────────────────────────
@@ -75,18 +69,12 @@ async def create_vendor(
 @router.get(
     "",
     response_model=VendorListResponse,
-    dependencies=[
-        Depends(require_permission("vendors.read"))
-    ],
+    dependencies=[Depends(require_permission("vendors.read"))],
 )
 async def list_vendors(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
-    status_filter: str | None = Query(
-        None, alias="status"
-    ),
+    current_user: Annotated[dict, Depends(get_current_user)],
+    status_filter: str | None = Query(None, alias="status"),
     tier: str | None = Query(None),
     search: str | None = Query(None, max_length=255),
     tags: str | None = Query(None),
@@ -115,9 +103,7 @@ async def list_vendors(
         page_size=page_size,
     )
     service = VendorService(session)
-    return await service.list_vendors(
-        current_user["tenant_id"], filters
-    )
+    return await service.list_vendors(current_user["tenant_id"], filters)
 
 
 # ── Get Vendor Detail ──────────────────────────────────────
@@ -126,22 +112,16 @@ async def list_vendors(
 @router.get(
     "/{vendor_id}",
     response_model=VendorDetailResponse,
-    dependencies=[
-        Depends(require_permission("vendors.read"))
-    ],
+    dependencies=[Depends(require_permission("vendors.read"))],
 )
 async def get_vendor(
     vendor_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> VendorDetailResponse:
     """Fetch full vendor detail with contacts and enrichment."""
     service = VendorService(session)
-    result = await service.get_vendor(
-        current_user["tenant_id"], vendor_id
-    )
+    result = await service.get_vendor(current_user["tenant_id"], vendor_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -156,17 +136,13 @@ async def get_vendor(
 @router.put(
     "/{vendor_id}",
     response_model=VendorResponse,
-    dependencies=[
-        Depends(require_permission("vendors.write"))
-    ],
+    dependencies=[Depends(require_permission("vendors.write"))],
 )
 async def update_vendor(
     vendor_id: uuid.UUID,
     body: VendorUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> VendorResponse:
     """Update an existing vendor."""
     service = VendorService(session)
@@ -187,22 +163,16 @@ async def update_vendor(
 @router.delete(
     "/{vendor_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[
-        Depends(require_permission("vendors.delete"))
-    ],
+    dependencies=[Depends(require_permission("vendors.delete"))],
 )
 async def delete_vendor(
     vendor_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:
     """Soft-delete a vendor."""
     service = VendorService(session)
-    deleted = await service.delete_vendor(
-        current_user["tenant_id"], vendor_id
-    )
+    deleted = await service.delete_vendor(current_user["tenant_id"], vendor_id)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -216,22 +186,16 @@ async def delete_vendor(
 @router.post(
     "/bulk-import",
     response_model=BulkImportResult,
-    dependencies=[
-        Depends(require_permission("vendors.write"))
-    ],
+    dependencies=[Depends(require_permission("vendors.write"))],
 )
 async def bulk_import(
     body: BulkImportRequest,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> BulkImportResult:
     """Import vendors from CSV data."""
     service = VendorService(session)
-    return await service.bulk_import(
-        current_user["tenant_id"], body.csv_data
-    )
+    return await service.bulk_import(current_user["tenant_id"], body.csv_data)
 
 
 # ── Calculate Tier ─────────────────────────────────────────
@@ -240,22 +204,16 @@ async def bulk_import(
 @router.post(
     "/{vendor_id}/calculate-tier",
     response_model=dict,
-    dependencies=[
-        Depends(require_permission("vendors.write"))
-    ],
+    dependencies=[Depends(require_permission("vendors.write"))],
 )
 async def calculate_tier(
     vendor_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> dict:
     """Recalculate and persist vendor tier classification."""
     service = VendorService(session)
-    tier = await service.calculate_tier(
-        current_user["tenant_id"], vendor_id
-    )
+    tier = await service.calculate_tier(current_user["tenant_id"], vendor_id)
     if tier is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -270,22 +228,16 @@ async def calculate_tier(
 @router.get(
     "/{vendor_id}/contacts",
     response_model=list[VendorContactResponse],
-    dependencies=[
-        Depends(require_permission("vendors.read"))
-    ],
+    dependencies=[Depends(require_permission("vendors.read"))],
 )
 async def list_contacts(
     vendor_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[VendorContactResponse]:
     """List all contacts for a vendor."""
     service = VendorService(session)
-    result = await service.list_contacts(
-        current_user["tenant_id"], vendor_id
-    )
+    result = await service.list_contacts(current_user["tenant_id"], vendor_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -301,17 +253,13 @@ async def list_contacts(
     "/{vendor_id}/contacts",
     response_model=VendorContactResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_permission("vendors.write"))
-    ],
+    dependencies=[Depends(require_permission("vendors.write"))],
 )
 async def add_contact(
     vendor_id: uuid.UUID,
     body: VendorContactCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> VendorContactResponse:
     """Add a contact to a vendor."""
     service = VendorService(session)
@@ -332,18 +280,14 @@ async def add_contact(
 @router.put(
     "/{vendor_id}/contacts/{contact_id}",
     response_model=VendorContactResponse,
-    dependencies=[
-        Depends(require_permission("vendors.write"))
-    ],
+    dependencies=[Depends(require_permission("vendors.write"))],
 )
 async def update_contact(
     vendor_id: uuid.UUID,
     contact_id: uuid.UUID,
     body: VendorContactUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> VendorContactResponse:
     """Update a vendor contact."""
     service = VendorService(session)

@@ -7,7 +7,7 @@ All endpoints require authentication. Permissions enforced per-route.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -46,21 +46,15 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 @router.get(
     "/dashboards/data/executive",
     response_model=ExecutiveDashboardData,
-    dependencies=[
-        Depends(require_permission("reports.read"))
-    ],
+    dependencies=[Depends(require_permission("reports.read"))],
 )
 async def get_executive_dashboard(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ExecutiveDashboardData:
     """Fetch aggregated executive dashboard data."""
     service = ReportsService(session)
-    return await service.get_executive_dashboard(
-        current_user["tenant_id"]
-    )
+    return await service.get_executive_dashboard(current_user["tenant_id"])
 
 
 # -- Generate Report -----------------------------------------------
@@ -70,18 +64,12 @@ async def get_executive_dashboard(
     "/generate",
     response_model=ReportResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(
-            require_permission("reports.generate")
-        )
-    ],
+    dependencies=[Depends(require_permission("reports.generate"))],
 )
 async def generate_report(
     body: GenerateReportRequest,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ReportResponse:
     """Generate a new report."""
     service = ReportsService(session)
@@ -100,15 +88,11 @@ async def generate_report(
 @router.get(
     "",
     response_model=ReportListResponse,
-    dependencies=[
-        Depends(require_permission("reports.read"))
-    ],
+    dependencies=[Depends(require_permission("reports.read"))],
 )
 async def list_reports(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> ReportListResponse:
@@ -125,22 +109,16 @@ async def list_reports(
 @router.get(
     "/{report_id}",
     response_model=ReportResponse,
-    dependencies=[
-        Depends(require_permission("reports.read"))
-    ],
+    dependencies=[Depends(require_permission("reports.read"))],
 )
 async def get_report(
     report_id: uuid.UUID,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> ReportResponse:
     """Fetch a single generated report."""
     service = ReportsService(session)
-    result = await service.get_report(
-        current_user["tenant_id"], report_id
-    )
+    result = await service.get_report(current_user["tenant_id"], report_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -155,21 +133,15 @@ async def get_report(
 @router.get(
     "/templates",
     response_model=list[ReportTemplateResponse],
-    dependencies=[
-        Depends(require_permission("reports.read"))
-    ],
+    dependencies=[Depends(require_permission("reports.read"))],
 )
 async def list_templates(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> list[ReportTemplateResponse]:
     """List all report templates."""
     service = ReportsService(session)
-    return await service.list_templates(
-        current_user["tenant_id"]
-    )
+    return await service.list_templates(current_user["tenant_id"])
 
 
 # -- Get Dashboard Config -------------------------------------------
@@ -177,16 +149,12 @@ async def list_templates(
 
 @router.get(
     "/dashboards",
-    response_model=Optional[DashboardConfigResponse],
-    dependencies=[
-        Depends(require_permission("reports.read"))
-    ],
+    response_model=DashboardConfigResponse | None,
+    dependencies=[Depends(require_permission("reports.read"))],
 )
 async def get_dashboard_config(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> DashboardConfigResponse | None:
     """Fetch current user's dashboard configuration."""
     service = ReportsService(session)
@@ -202,17 +170,13 @@ async def get_dashboard_config(
 @router.put(
     "/dashboards/{config_id}",
     response_model=DashboardConfigResponse,
-    dependencies=[
-        Depends(require_permission("reports.read"))
-    ],
+    dependencies=[Depends(require_permission("reports.read"))],
 )
 async def update_dashboard_config(
     config_id: uuid.UUID,
     body: DashboardConfigUpdate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        dict, Depends(get_current_user)
-    ],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> DashboardConfigResponse:
     """Update dashboard configuration."""
     service = ReportsService(session)

@@ -39,15 +39,11 @@ class AuthService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
         self._settings = get_settings()
-        self._encryptor = FieldEncryptor(
-            self._settings.ENCRYPTION_KEY
-        )
+        self._encryptor = FieldEncryptor(self._settings.ENCRYPTION_KEY)
 
     # ── Authentication ────────────────────────────────────────
 
-    async def authenticate(
-        self, email: str, password: str
-    ) -> User | None:
+    async def authenticate(self, email: str, password: str) -> User | None:
         """
         Verify credentials and return the User or None.
 
@@ -58,11 +54,7 @@ class AuthService:
 
         result = await self._session.execute(
             select(User)
-            .options(
-                selectinload(User.user_roles).selectinload(
-                    UserRole.role
-                )
-            )
+            .options(selectinload(User.user_roles).selectinload(UserRole.role))
             .where(
                 User.email_hash == email_hash,
                 User.is_active.is_(True),
@@ -90,9 +82,7 @@ class AuthService:
         token_data = {
             "sub": str(user.id),
             "tenant_id": str(user.tenant_id),
-            "roles": [
-                ur.role.name for ur in user.user_roles
-            ],
+            "roles": [ur.role.name for ur in user.user_roles],
             "permissions": permissions,
         }
 
@@ -100,17 +90,13 @@ class AuthService:
             data=token_data,
             secret_key=self._settings.JWT_SECRET_KEY,
             algorithm=self._settings.JWT_ALGORITHM,
-            expires_minutes=(
-                self._settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
-            ),
+            expires_minutes=(self._settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
         )
         refresh = create_refresh_token(
             data=token_data,
             secret_key=self._settings.JWT_SECRET_KEY,
             algorithm=self._settings.JWT_ALGORITHM,
-            expires_days=(
-                self._settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS
-            ),
+            expires_days=(self._settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
         )
 
         # Persist refresh token hash
@@ -119,9 +105,7 @@ class AuthService:
         return TokenResponse(
             access_token=access,
             refresh_token=refresh,
-            expires_in=(
-                self._settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
-            ),
+            expires_in=(self._settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
         )
 
     async def refresh_tokens(
@@ -163,9 +147,7 @@ class AuthService:
 
         return await self.create_tokens(user)
 
-    async def revoke_refresh_token(
-        self, refresh_token_raw: str
-    ) -> bool:
+    async def revoke_refresh_token(self, refresh_token_raw: str) -> bool:
         """Revoke a single refresh token. Returns True on success."""
         token_hash = _sha256(refresh_token_raw)
         result = await self._session.execute(
@@ -180,24 +162,16 @@ class AuthService:
 
     # ── User queries ──────────────────────────────────────────
 
-    async def get_user_by_id(
-        self, user_id: str
-    ) -> User | None:
+    async def get_user_by_id(self, user_id: str) -> User | None:
         """Fetch a user by primary key with roles eagerly loaded."""
         result = await self._session.execute(
             select(User)
-            .options(
-                selectinload(User.user_roles).selectinload(
-                    UserRole.role
-                )
-            )
+            .options(selectinload(User.user_roles).selectinload(UserRole.role))
             .where(User.id == user_id)
         )
         return result.scalars().first()
 
-    async def get_user_permissions(
-        self, user_id: str
-    ) -> list[str]:
+    async def get_user_permissions(self, user_id: str) -> list[str]:
         """Aggregate distinct permissions across all user roles."""
         user = await self.get_user_by_id(user_id)
         if user is None:
@@ -215,9 +189,7 @@ class AuthService:
                 perms.update(user_role.role.permissions)
         return sorted(perms)
 
-    async def _store_refresh_token(
-        self, user: User, raw_token: str
-    ) -> None:
+    async def _store_refresh_token(self, user: User, raw_token: str) -> None:
         """Persist a hashed refresh token to the database."""
         expires_at = datetime.now(UTC) + timedelta(
             days=self._settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS

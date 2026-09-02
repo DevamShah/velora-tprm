@@ -58,9 +58,7 @@ async def _seed_alert_rules(
         AlertRule(
             tenant_id=tenant_id,
             name="Critical Severity Auto-Alert",
-            description=(
-                "Generate P0 alert for any critical signal"
-            ),
+            description=("Generate P0 alert for any critical signal"),
             conditions={"severity": ["critical"]},
             actions={"notify": ["admin"], "priority": "p0"},
             is_active=True,
@@ -68,9 +66,7 @@ async def _seed_alert_rules(
         AlertRule(
             tenant_id=tenant_id,
             name="High Severity Auto-Alert",
-            description=(
-                "Generate P1 alert for high severity signals"
-            ),
+            description=("Generate P1 alert for high severity signals"),
             conditions={"severity": ["high"]},
             actions={"notify": ["manager"], "priority": "p1"},
             is_active=True,
@@ -78,9 +74,7 @@ async def _seed_alert_rules(
         AlertRule(
             tenant_id=tenant_id,
             name="Data Breach Signal",
-            description=(
-                "Alert on any data breach signals"
-            ),
+            description=("Alert on any data breach signals"),
             conditions={
                 "signal_type": "data_breach",
                 "severity": ["critical", "high"],
@@ -199,15 +193,13 @@ async def _seed_alerts(
         },
     ]
 
-    for i, data in enumerate(alerts_data):
+    for data in alerts_data:
         alert = Alert(
             tenant_id=tenant_id,
             **data,
         )
         if data["status"] == "acknowledged":
-            alert.acknowledged_at = now - timedelta(
-                hours=2
-            )
+            alert.acknowledged_at = now - timedelta(hours=2)
         elif data["status"] == "resolved":
             alert.resolved_at = now - timedelta(days=1)
         session.add(alert)
@@ -326,18 +318,10 @@ async def seed_monitoring(
     session: AsyncSession,
 ) -> int:
     """Seed all monitoring demo data. Returns count."""
-    vendor_ids = await _get_vendor_ids(
-        session, DEMO_TENANT_ID
-    )
-    rules = await _seed_alert_rules(
-        session, DEMO_TENANT_ID
-    )
-    alerts = await _seed_alerts(
-        session, DEMO_TENANT_ID, vendor_ids
-    )
-    timeline = await _seed_timeline(
-        session, DEMO_TENANT_ID, vendor_ids
-    )
+    vendor_ids = await _get_vendor_ids(session, DEMO_TENANT_ID)
+    rules = await _seed_alert_rules(session, DEMO_TENANT_ID)
+    alerts = await _seed_alerts(session, DEMO_TENANT_ID, vendor_ids)
+    timeline = await _seed_timeline(session, DEMO_TENANT_ID, vendor_ids)
 
     await session.commit()
     total = rules + alerts + timeline

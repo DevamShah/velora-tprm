@@ -15,15 +15,9 @@ from contextvars import ContextVar
 import structlog
 
 # Context variables for request-scoped metadata
-request_id_ctx: ContextVar[str | None] = ContextVar(
-    "request_id", default=None
-)
-tenant_id_ctx: ContextVar[str | None] = ContextVar(
-    "tenant_id", default=None
-)
-user_id_ctx: ContextVar[str | None] = ContextVar(
-    "user_id", default=None
-)
+request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
+tenant_id_ctx: ContextVar[str | None] = ContextVar("tenant_id", default=None)
+user_id_ctx: ContextVar[str | None] = ContextVar("user_id", default=None)
 
 # Patterns that indicate PII — never allow these values through
 _PII_KEYS = re.compile(
