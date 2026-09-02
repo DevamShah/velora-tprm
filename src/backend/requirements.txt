@@ -21,7 +21,7 @@ bcrypt>=4.2.0
 cryptography>=44.0.0
 
 # Logging
-structlog>=24.4.0
+structlog>=26.1.0
 
 # LLM clients (optional — install if using AI features)
 # anthropic>=0.42.0
