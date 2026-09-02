@@ -2,7 +2,7 @@
 # Framework
 fastapi>=0.115.0
 eval-type-backport>=0.2.0  # Python 3.9 compat for PEP 604 union syntax in Pydantic
-uvicorn[standard]>=0.34.0
+uvicorn[standard]>=0.52.4
 pydantic[email]>=2.10.0
 pydantic-settings>=2.7.0
 
