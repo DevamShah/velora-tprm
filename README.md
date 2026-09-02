@@ -5,11 +5,13 @@
 **Open-source, AI-native Third-Party Risk Management**
 
 [![CI](https://github.com/DevamShah/velora-tprm/actions/workflows/ci.yml/badge.svg)](https://github.com/DevamShah/velora-tprm/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/DevamShah/velora-tprm?logo=github&color=blue)](https://github.com/DevamShah/velora-tprm/releases/latest)
 [![CodeQL](https://github.com/DevamShah/velora-tprm/actions/workflows/codeql.yml/badge.svg)](https://github.com/DevamShah/velora-tprm/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/DevamShah/velora-tprm/badge)](https://scorecard.dev/viewer/?uri=github.com/DevamShah/velora-tprm)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-3776AB.svg?logo=python&logoColor=white)](pyproject.toml)
 [![Next.js 15](https://img.shields.io/badge/next.js-15-000000.svg?logo=nextdotjs&logoColor=white)](frontend/web/package.json)
+[![Coverage 86%](https://img.shields.io/badge/coverage-86%25-brightgreen.svg)](.github/workflows/ci.yml)
 
 [Why](#why) · [Screenshots](#screenshots) · [Architecture](#architecture) · [Quick start](#quick-start) · [Development](#development) · [Contributing](CONTRIBUTING.md)
 
