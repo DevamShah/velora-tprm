@@ -24,7 +24,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^1.7.0",
     "motion": "^12.38.0",
-    "next": "15.5.14",
+    "next": "15.5.25",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-dropzone": "^15.0.0",
@@ -43,11 +43,14 @@
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "depcheck": "^1.4.7",
     "eslint": "^9",
-    "eslint-config-next": "15.5.14",
+    "eslint-config-next": "15.5.25",
     "jscpd": "^4.0.8",
     "lighthouse": "^13.0.3",
     "madge": "^8.0.0",
     "tailwindcss": "^4",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "postcss": "^8.5.26"
   }
 }
