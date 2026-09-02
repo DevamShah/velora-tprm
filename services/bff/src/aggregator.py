@@ -8,6 +8,7 @@ a single response payload, reducing frontend round-trips.
 from __future__ import annotations
 
 import asyncio
+import uuid
 from typing import Any
 
 import httpx
@@ -22,14 +23,20 @@ async def _fetch(
     client: httpx.AsyncClient,
     url: str,
     token: str,
+    params: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     GET a URL with bearer auth.  Returns parsed JSON on success,
     or an error dict on failure (never raises).
+
+    Query values go through ``params`` so httpx encodes them.  Never
+    interpolate caller-supplied values into ``url`` — that allows a
+    caller to append their own parameters to an internal service call.
     """
     try:
         resp = await client.get(
             url,
+            params=params,
             headers={"Authorization": f"Bearer {token}"},
             timeout=_TIMEOUT,
         )
@@ -52,13 +59,15 @@ async def dashboard_data(access_token: str) -> dict[str, Any]:
     async with httpx.AsyncClient() as client:
         vendors_task = _fetch(
             client,
-            f"{settings.VENDOR_SERVICE_URL}/api/v1/vendors?page=1&size=5",
+            f"{settings.VENDOR_SERVICE_URL}/api/v1/vendors",
             access_token,
+            params={"page": 1, "size": 5},
         )
         assessments_task = _fetch(
             client,
-            f"{settings.ASSESSMENT_SERVICE_URL}/api/v1/assessments?page=1&size=5",
+            f"{settings.ASSESSMENT_SERVICE_URL}/api/v1/assessments",
             access_token,
+            params={"page": 1, "size": 5},
         )
         findings_task = _fetch(
             client,
@@ -96,38 +105,52 @@ async def dashboard_data(access_token: str) -> dict[str, Any]:
     return dashboard
 
 
-async def vendor_full(vendor_id: str, access_token: str) -> dict[str, Any]:
+async def vendor_full(
+    vendor_id: uuid.UUID | str,
+    access_token: str,
+) -> dict[str, Any]:
     """
     Aggregate full vendor detail from multiple services in parallel.
 
     Returns a single dict with keys:
       vendor, assessments, scores, findings, timeline
+
+    ``vendor_id`` is coerced to ``uuid.UUID`` before it reaches a URL.
+    The route already types it as a UUID, so this is the second line of
+    defence: it guarantees the value is 36 hex-and-dash characters and
+    cannot carry a path segment, an extra query parameter, or a
+    fragment into an internal service call.  Raises ``ValueError`` on
+    anything else.
     """
+    vid = str(uuid.UUID(str(vendor_id)))
     settings = get_settings()
     async with httpx.AsyncClient() as client:
         vendor_task = _fetch(
             client,
-            f"{settings.VENDOR_SERVICE_URL}/api/v1/vendors/{vendor_id}",
+            f"{settings.VENDOR_SERVICE_URL}/api/v1/vendors/{vid}",
             access_token,
         )
         assessments_task = _fetch(
             client,
-            f"{settings.ASSESSMENT_SERVICE_URL}/api/v1/assessments?vendor_id={vendor_id}",
+            f"{settings.ASSESSMENT_SERVICE_URL}/api/v1/assessments",
             access_token,
+            params={"vendor_id": vid},
         )
         scores_task = _fetch(
             client,
-            f"{settings.SCORING_SERVICE_URL}/api/v1/scoring/vendor/{vendor_id}",
+            f"{settings.SCORING_SERVICE_URL}/api/v1/scoring/vendor/{vid}",
             access_token,
         )
         findings_task = _fetch(
             client,
-            f"{settings.FINDING_SERVICE_URL}/api/v1/findings?vendor_id={vendor_id}",
+            f"{settings.FINDING_SERVICE_URL}/api/v1/findings",
             access_token,
+            params={"vendor_id": vid},
         )
         timeline_task = _fetch(
             client,
-            f"{settings.MONITORING_SERVICE_URL}/api/v1/monitoring/vendor/{vendor_id}/timeline",
+            f"{settings.MONITORING_SERVICE_URL}"
+            f"/api/v1/monitoring/vendor/{vid}/timeline",
             access_token,
         )
 

@@ -12,6 +12,7 @@ upstream microservices and manages session state in Redis.
 
 from __future__ import annotations
 
+import uuid
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 
@@ -354,7 +355,7 @@ def create_app() -> FastAPI:
         tags=["bff-aggregation"],
     )
     async def bff_vendor_full(
-        vendor_id: str,
+        vendor_id: uuid.UUID,
         velora_session: str | None = Cookie(None, alias="velora_session"),
     ) -> dict[str, Any]:
         """
