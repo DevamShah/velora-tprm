@@ -7,7 +7,7 @@ All endpoints require authentication. Permissions enforced per-route.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List, Optional
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -84,14 +84,14 @@ async def list_vendors(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-    status_filter: Optional[str] = Query(
+    status_filter: str | None = Query(
         None, alias="status"
     ),
-    tier: Optional[str] = Query(None),
-    search: Optional[str] = Query(None, max_length=255),
-    tags: Optional[str] = Query(None),
-    data_classification: Optional[str] = Query(None),
-    business_criticality: Optional[str] = Query(None),
+    tier: str | None = Query(None),
+    search: str | None = Query(None, max_length=255),
+    tags: str | None = Query(None),
+    data_classification: str | None = Query(None),
+    business_criticality: str | None = Query(None),
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
     page: int = Query(1, ge=1),
@@ -269,7 +269,7 @@ async def calculate_tier(
 
 @router.get(
     "/{vendor_id}/contacts",
-    response_model=List[VendorContactResponse],
+    response_model=list[VendorContactResponse],
     dependencies=[
         Depends(require_permission("vendors.read"))
     ],
@@ -280,7 +280,7 @@ async def list_contacts(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[VendorContactResponse]:
+) -> list[VendorContactResponse]:
     """List all contacts for a vendor."""
     service = VendorService(session)
     result = await service.list_contacts(

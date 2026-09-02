@@ -11,7 +11,6 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Dict, List, Optional
 
 from sqlalchemy import (
     Boolean,
@@ -28,7 +27,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.database import Base, TenantBase
+from app.core.database import TenantBase
 
 
 class Vendor(TenantBase):
@@ -39,10 +38,10 @@ class Vendor(TenantBase):
     name: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
-    domain: Mapped[Optional[str]] = mapped_column(
+    domain: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     status: Mapped[str] = mapped_column(
@@ -51,77 +50,77 @@ class Vendor(TenantBase):
     tier: Mapped[str] = mapped_column(
         String(50), nullable=False, default="unclassified"
     )
-    industry: Mapped[Optional[str]] = mapped_column(
+    industry: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
-    country: Mapped[Optional[str]] = mapped_column(
+    country: Mapped[str | None] = mapped_column(
         String(100), nullable=True
     )
-    employee_count: Mapped[Optional[int]] = mapped_column(
+    employee_count: Mapped[int | None] = mapped_column(
         Integer, nullable=True
     )
-    annual_revenue: Mapped[Optional[Decimal]] = mapped_column(
+    annual_revenue: Mapped[Decimal | None] = mapped_column(
         Numeric(18, 2), nullable=True
     )
-    data_classification: Mapped[Optional[str]] = mapped_column(
+    data_classification: Mapped[str | None] = mapped_column(
         String(50), nullable=True
     )
-    business_criticality: Mapped[Optional[str]] = mapped_column(
+    business_criticality: Mapped[str | None] = mapped_column(
         String(50), nullable=True
     )
-    contract_start_date: Mapped[Optional[date]] = mapped_column(
+    contract_start_date: Mapped[date | None] = mapped_column(
         Date, nullable=True
     )
-    contract_end_date: Mapped[Optional[date]] = mapped_column(
+    contract_end_date: Mapped[date | None] = mapped_column(
         Date, nullable=True
     )
-    contract_value: Mapped[Optional[Decimal]] = mapped_column(
+    contract_value: Mapped[Decimal | None] = mapped_column(
         Numeric(18, 2), nullable=True
     )
-    primary_contact_name: Mapped[Optional[str]] = mapped_column(
+    primary_contact_name: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
-    primary_contact_email_encrypted: Mapped[Optional[str]] = (
+    primary_contact_email_encrypted: Mapped[str | None] = (
         mapped_column(Text, nullable=True)
     )
-    primary_contact_email_hash: Mapped[Optional[str]] = (
+    primary_contact_email_hash: Mapped[str | None] = (
         mapped_column(String(64), nullable=True)
     )
-    tags: Mapped[Optional[List[str]]] = mapped_column(
+    tags: Mapped[list[str] | None] = mapped_column(
         ARRAY(Text), nullable=True, default=list
     )
-    notes: Mapped[Optional[str]] = mapped_column(
+    notes: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    inherent_risk_score: Mapped[Optional[float]] = mapped_column(
+    inherent_risk_score: Mapped[float | None] = mapped_column(
         Float, nullable=True
     )
-    residual_risk_score: Mapped[Optional[float]] = mapped_column(
+    residual_risk_score: Mapped[float | None] = mapped_column(
         Float, nullable=True
     )
-    external_rating_score: Mapped[Optional[float]] = mapped_column(
+    external_rating_score: Mapped[float | None] = mapped_column(
         Float, nullable=True
     )
-    external_rating_provider: Mapped[Optional[str]] = mapped_column(
+    external_rating_provider: Mapped[str | None] = mapped_column(
         String(100), nullable=True
     )
-    last_assessed_at: Mapped[Optional[datetime]] = mapped_column(
+    last_assessed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    next_assessment_due: Mapped[Optional[datetime]] = mapped_column(
+    next_assessment_due: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+    deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
     # Relationships
-    contacts: Mapped[List["VendorContact"]] = relationship(
+    contacts: Mapped[list[VendorContact]] = relationship(
         back_populates="vendor",
         lazy="selectin",
         cascade="all, delete-orphan",
     )
-    enrichments: Mapped[List["VendorEnrichment"]] = relationship(
+    enrichments: Mapped[list[VendorEnrichment]] = relationship(
         back_populates="vendor",
         lazy="noload",
         cascade="all, delete-orphan",
@@ -145,19 +144,19 @@ class VendorContact(TenantBase):
     last_name: Mapped[str] = mapped_column(
         String(100), nullable=False
     )
-    email_encrypted: Mapped[Optional[str]] = mapped_column(
+    email_encrypted: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    email_hash: Mapped[Optional[str]] = mapped_column(
+    email_hash: Mapped[str | None] = mapped_column(
         String(64), nullable=True
     )
-    phone_encrypted: Mapped[Optional[str]] = mapped_column(
+    phone_encrypted: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    phone_hash: Mapped[Optional[str]] = mapped_column(
+    phone_hash: Mapped[str | None] = mapped_column(
         String(64), nullable=True
     )
-    role: Mapped[Optional[str]] = mapped_column(
+    role: Mapped[str | None] = mapped_column(
         String(100), nullable=True
     )
     is_primary: Mapped[bool] = mapped_column(
@@ -168,7 +167,7 @@ class VendorContact(TenantBase):
     )
 
     # Relationships
-    vendor: Mapped["Vendor"] = relationship(
+    vendor: Mapped[Vendor] = relationship(
         back_populates="contacts"
     )
 
@@ -187,7 +186,7 @@ class VendorTag(TenantBase):
     name: Mapped[str] = mapped_column(
         String(100), nullable=False
     )
-    color: Mapped[Optional[str]] = mapped_column(
+    color: Mapped[str | None] = mapped_column(
         String(7), nullable=True
     )
 
@@ -206,20 +205,20 @@ class VendorEnrichment(TenantBase):
     source: Mapped[str] = mapped_column(
         String(100), nullable=False
     )
-    data: Mapped[Optional[Dict]] = mapped_column(
+    data: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True
     )
-    confidence: Mapped[Optional[float]] = mapped_column(
+    confidence: Mapped[float | None] = mapped_column(
         Float, nullable=True
     )
     is_current: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
-    enriched_at: Mapped[Optional[datetime]] = mapped_column(
+    enriched_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
     # Relationships
-    vendor: Mapped["Vendor"] = relationship(
+    vendor: Mapped[Vendor] = relationship(
         back_populates="enrichments"
     )

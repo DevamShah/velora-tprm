@@ -8,7 +8,6 @@ exist by name within the demo tenant.
 from __future__ import annotations
 
 import uuid
-from typing import Dict, List
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +27,7 @@ logger = get_logger(__name__)
 
 # -- Template definitions -------------------------------------------
 
-TEMPLATE_SEEDS: List[Dict] = [
+TEMPLATE_SEEDS: list[dict] = [
     {
         "name": "SIG Core Assessment",
         "description": (
@@ -86,7 +85,7 @@ TEMPLATE_SEEDS: List[Dict] = [
 
 # -- Question definitions per template ------------------------------
 
-SIG_CORE_QUESTIONS: List[Dict] = [
+SIG_CORE_QUESTIONS: list[dict] = [
     # Information Security (3)
     {
         "section": "Information Security",
@@ -308,7 +307,7 @@ SIG_CORE_QUESTIONS: List[Dict] = [
     },
 ]
 
-SIG_LITE_QUESTIONS: List[Dict] = [
+SIG_LITE_QUESTIONS: list[dict] = [
     {
         "section": "Information Security",
         "question_text": (
@@ -415,7 +414,7 @@ SIG_LITE_QUESTIONS: List[Dict] = [
     },
 ]
 
-CUSTOM_QUESTIONS: List[Dict] = [
+CUSTOM_QUESTIONS: list[dict] = [
     {
         "section": "Information Security",
         "question_text": (
@@ -511,7 +510,7 @@ TEMPLATE_QUESTIONS_MAP = {
 
 # -- Demo assessment definitions ------------------------------------
 
-DEMO_ASSESSMENTS: List[Dict] = [
+DEMO_ASSESSMENTS: list[dict] = [
     {
         "vendor_name": "Amazon Web Services",
         "template_name": "SIG Core Assessment",
@@ -572,7 +571,7 @@ DEMO_ASSESSMENTS: List[Dict] = [
 async def _seed_template(
     session: AsyncSession,
     tenant_id: uuid.UUID,
-    template_def: Dict,
+    template_def: dict,
 ) -> AssessmentTemplate:
     """Create template if it does not exist."""
     result = await session.execute(
@@ -616,7 +615,7 @@ async def _seed_questions(
     session: AsyncSession,
     tenant_id: uuid.UUID,
     template: AssessmentTemplate,
-    questions_def: List[Dict],
+    questions_def: list[dict],
 ) -> None:
     """Seed questions for a template if none exist."""
     result = await session.execute(
@@ -677,8 +676,8 @@ async def _get_vendor_by_name(
 async def _seed_assessment(
     session: AsyncSession,
     tenant_id: uuid.UUID,
-    assessment_def: Dict,
-    template_map: Dict[str, AssessmentTemplate],
+    assessment_def: dict,
+    template_map: dict[str, AssessmentTemplate],
 ) -> bool:
     """Create a demo assessment if it does not exist."""
     result = await session.execute(
@@ -760,7 +759,7 @@ async def seed_assessments(
     created = 0
 
     # 1. Seed templates
-    template_map: Dict[str, AssessmentTemplate] = {}
+    template_map: dict[str, AssessmentTemplate] = {}
     for template_def in TEMPLATE_SEEDS:
         template = await _seed_template(
             session, tenant_id, template_def

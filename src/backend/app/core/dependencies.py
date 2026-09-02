@@ -8,12 +8,11 @@ tenant isolation, and permission enforcement.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Callable
+from collections.abc import Callable
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db, set_tenant_context
 from app.core.logging import (

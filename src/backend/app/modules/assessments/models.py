@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
@@ -35,15 +35,15 @@ class AssessmentTemplate(TenantBase):
     name: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    framework_ids: Mapped[Optional[List[uuid.UUID]]] = (
+    framework_ids: Mapped[list[uuid.UUID] | None] = (
         mapped_column(
             ARRAY(UUID(as_uuid=True)), nullable=True
         )
     )
-    tier_applicability: Mapped[Optional[List[str]]] = (
+    tier_applicability: Mapped[list[str] | None] = (
         mapped_column(ARRAY(Text), nullable=True)
     )
     is_system: Mapped[bool] = mapped_column(
@@ -52,23 +52,23 @@ class AssessmentTemplate(TenantBase):
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
-    scoring_weights: Mapped[Optional[Dict]] = mapped_column(
+    scoring_weights: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True
     )
     question_count: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False
     )
-    estimated_duration_minutes: Mapped[Optional[int]] = (
+    estimated_duration_minutes: Mapped[int | None] = (
         mapped_column(Integer, nullable=True)
     )
 
     # Relationships
-    questions: Mapped[List["Question"]] = relationship(
+    questions: Mapped[list[Question]] = relationship(
         back_populates="template",
         lazy="noload",
         cascade="all, delete-orphan",
     )
-    assessments: Mapped[List["Assessment"]] = relationship(
+    assessments: Mapped[list[Assessment]] = relationship(
         back_populates="template",
         lazy="noload",
     )
@@ -82,7 +82,7 @@ class QuestionBank(TenantBase):
     name: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     bank_type: Mapped[str] = mapped_column(
@@ -93,7 +93,7 @@ class QuestionBank(TenantBase):
     )
 
     # Relationships
-    questions: Mapped[List["Question"]] = relationship(
+    questions: Mapped[list[Question]] = relationship(
         back_populates="question_bank",
         lazy="noload",
         cascade="all, delete-orphan",
@@ -105,7 +105,7 @@ class Question(TenantBase):
 
     __tablename__ = "questions"
 
-    question_bank_id: Mapped[Optional[uuid.UUID]] = (
+    question_bank_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey(
@@ -115,7 +115,7 @@ class Question(TenantBase):
             index=True,
         )
     )
-    template_id: Mapped[Optional[uuid.UUID]] = (
+    template_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey(
@@ -126,10 +126,10 @@ class Question(TenantBase):
             index=True,
         )
     )
-    section: Mapped[Optional[str]] = mapped_column(
+    section: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
-    subsection: Mapped[Optional[str]] = mapped_column(
+    subsection: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
     question_text: Mapped[str] = mapped_column(
@@ -138,7 +138,7 @@ class Question(TenantBase):
     question_type: Mapped[str] = mapped_column(
         String(50), nullable=False, default="text"
     )
-    options: Mapped[Optional[Dict]] = mapped_column(
+    options: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True
     )
     is_required: Mapped[bool] = mapped_column(
@@ -147,10 +147,10 @@ class Question(TenantBase):
     weight: Mapped[float] = mapped_column(
         Float, default=1.0, nullable=False
     )
-    risk_domain: Mapped[Optional[str]] = mapped_column(
+    risk_domain: Mapped[str | None] = mapped_column(
         String(100), nullable=True
     )
-    guidance_text: Mapped[Optional[str]] = mapped_column(
+    guidance_text: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     order_index: Mapped[int] = mapped_column(
@@ -158,13 +158,13 @@ class Question(TenantBase):
     )
 
     # Relationships
-    question_bank: Mapped[Optional["QuestionBank"]] = (
+    question_bank: Mapped[QuestionBank | None] = (
         relationship(back_populates="questions")
     )
-    template: Mapped[Optional["AssessmentTemplate"]] = (
+    template: Mapped[AssessmentTemplate | None] = (
         relationship(back_populates="questions")
     )
-    responses: Mapped[List["QuestionnaireResponse"]] = (
+    responses: Mapped[list[QuestionnaireResponse]] = (
         relationship(
             back_populates="question",
             lazy="noload",
@@ -183,7 +183,7 @@ class Assessment(TenantBase):
         nullable=False,
         index=True,
     )
-    template_id: Mapped[Optional[uuid.UUID]] = (
+    template_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey(
@@ -197,47 +197,47 @@ class Assessment(TenantBase):
     title: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="draft"
     )
-    assigned_to: Mapped[Optional[uuid.UUID]] = (
+    assigned_to: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         )
     )
-    distributed_at: Mapped[Optional[datetime]] = (
+    distributed_at: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
     )
-    submitted_at: Mapped[Optional[datetime]] = (
+    submitted_at: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
     )
-    completed_at: Mapped[Optional[datetime]] = (
+    completed_at: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
     )
-    due_date: Mapped[Optional[datetime]] = mapped_column(
+    due_date: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    reminder_schedule: Mapped[Optional[Dict]] = (
+    reminder_schedule: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
-    overall_score: Mapped[Optional[float]] = (
+    overall_score: Mapped[float | None] = (
         mapped_column(Float, nullable=True)
     )
-    ai_confidence: Mapped[Optional[float]] = (
+    ai_confidence: Mapped[float | None] = (
         mapped_column(Float, nullable=True)
     )
-    scoring_details: Mapped[Optional[Dict]] = (
+    scoring_details: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
 
@@ -247,14 +247,14 @@ class Assessment(TenantBase):
         lazy="selectin",
         foreign_keys=[vendor_id],
     )
-    template: Mapped[Optional["AssessmentTemplate"]] = (
+    template: Mapped[AssessmentTemplate | None] = (
         relationship(
             back_populates="assessments",
             lazy="selectin",
         )
     )
     responses: Mapped[
-        List["QuestionnaireResponse"]
+        list[QuestionnaireResponse]
     ] = relationship(
         back_populates="assessment",
         lazy="noload",
@@ -279,25 +279,25 @@ class QuestionnaireResponse(TenantBase):
         nullable=False,
         index=True,
     )
-    response_value: Mapped[Optional[str]] = mapped_column(
+    response_value: Mapped[str | None] = mapped_column(
         String(500), nullable=True
     )
-    response_text: Mapped[Optional[str]] = mapped_column(
+    response_text: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    response_options: Mapped[Optional[Dict]] = (
+    response_options: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
     ai_prefilled: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
-    ai_confidence: Mapped[Optional[float]] = (
+    ai_confidence: Mapped[float | None] = (
         mapped_column(Float, nullable=True)
     )
-    ai_citations: Mapped[Optional[Dict]] = mapped_column(
+    ai_citations: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True
     )
-    reviewer_id: Mapped[Optional[uuid.UUID]] = (
+    reviewer_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),
@@ -307,25 +307,25 @@ class QuestionnaireResponse(TenantBase):
     review_status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="pending"
     )
-    reviewer_notes: Mapped[Optional[str]] = mapped_column(
+    reviewer_notes: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    responded_at: Mapped[Optional[datetime]] = (
+    responded_at: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
     )
-    reviewed_at: Mapped[Optional[datetime]] = (
+    reviewed_at: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
     )
 
     # Relationships
-    assessment: Mapped["Assessment"] = relationship(
+    assessment: Mapped[Assessment] = relationship(
         back_populates="responses"
     )
-    question: Mapped["Question"] = relationship(
+    question: Mapped[Question] = relationship(
         back_populates="responses",
         lazy="selectin",
     )

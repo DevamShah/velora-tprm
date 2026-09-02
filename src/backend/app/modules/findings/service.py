@@ -7,8 +7,7 @@ All DB queries run inside the caller-provided async session.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,9 +43,9 @@ class FindingsService:
     async def list_findings(
         self,
         tenant_id: uuid.UUID,
-        vendor_id: Optional[uuid.UUID] = None,
-        severity: Optional[str] = None,
-        status: Optional[str] = None,
+        vendor_id: uuid.UUID | None = None,
+        severity: str | None = None,
+        status: str | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> FindingListResponse:
@@ -102,7 +101,7 @@ class FindingsService:
         self,
         tenant_id: uuid.UUID,
         finding_id: uuid.UUID,
-    ) -> Optional[FindingResponse]:
+    ) -> FindingResponse | None:
         """Fetch a single finding with remediation."""
         result = await self._session.execute(
             select(Finding)
@@ -157,7 +156,7 @@ class FindingsService:
         tenant_id: uuid.UUID,
         finding_id: uuid.UUID,
         data: FindingUpdate,
-    ) -> Optional[FindingResponse]:
+    ) -> FindingResponse | None:
         """Update a finding."""
         finding = await self._get_finding(
             tenant_id, finding_id
@@ -187,7 +186,7 @@ class FindingsService:
         tenant_id: uuid.UUID,
         finding_id: uuid.UUID,
         data: FindingClose,
-    ) -> Optional[FindingResponse]:
+    ) -> FindingResponse | None:
         """Close a finding with a final status."""
         finding = await self._get_finding(
             tenant_id, finding_id
@@ -196,7 +195,7 @@ class FindingsService:
             return None
 
         finding.status = data.status.value
-        finding.closed_at = datetime.now(timezone.utc)
+        finding.closed_at = datetime.now(UTC)
         await self._session.flush()
         logger.info(
             "finding_closed",
@@ -212,7 +211,7 @@ class FindingsService:
         tenant_id: uuid.UUID,
         finding_id: uuid.UUID,
         data: RemediationCreate,
-    ) -> Optional[RemediationResponse]:
+    ) -> RemediationResponse | None:
         """Add a remediation action to a finding."""
         finding = await self._get_finding(
             tenant_id, finding_id
@@ -245,7 +244,7 @@ class FindingsService:
         finding_id: uuid.UUID,
         action_id: uuid.UUID,
         data: RemediationUpdate,
-    ) -> Optional[RemediationResponse]:
+    ) -> RemediationResponse | None:
         """Update a remediation action."""
         result = await self._session.execute(
             select(RemediationAction).where(
@@ -270,7 +269,7 @@ class FindingsService:
 
         if action.status == "completed":
             action.completed_at = datetime.now(
-                timezone.utc
+                UTC
             )
 
         await self._session.flush()
@@ -286,7 +285,7 @@ class FindingsService:
         self,
         tenant_id: uuid.UUID,
         finding_id: uuid.UUID,
-    ) -> Optional[Finding]:
+    ) -> Finding | None:
         """Fetch finding or return None."""
         result = await self._session.execute(
             select(Finding)

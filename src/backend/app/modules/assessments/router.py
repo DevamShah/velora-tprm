@@ -7,7 +7,7 @@ All endpoints require authentication. Permissions enforced per-route.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List, Optional
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -53,7 +53,7 @@ router = APIRouter(
 
 @router.get(
     "/templates",
-    response_model=List[AssessmentTemplateResponse],
+    response_model=list[AssessmentTemplateResponse],
     dependencies=[
         Depends(require_permission("assessments.read"))
     ],
@@ -63,7 +63,7 @@ async def list_templates(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[AssessmentTemplateResponse]:
+) -> list[AssessmentTemplateResponse]:
     """List available assessment templates."""
     service = AssessmentService(session)
     return await service.list_templates(
@@ -136,12 +136,12 @@ async def list_assessments(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-    status_filter: Optional[str] = Query(
+    status_filter: str | None = Query(
         None, alias="status"
     ),
-    vendor_id: Optional[uuid.UUID] = Query(None),
-    template_id: Optional[uuid.UUID] = Query(None),
-    search: Optional[str] = Query(
+    vendor_id: uuid.UUID | None = Query(None),
+    template_id: uuid.UUID | None = Query(None),
+    search: str | None = Query(
         None, max_length=255
     ),
     sort_by: str = Query("created_at"),
@@ -455,7 +455,7 @@ async def cancel_assessment(
 
 @router.get(
     "/{assessment_id}/responses",
-    response_model=List[QuestionnaireResponseItem],
+    response_model=list[QuestionnaireResponseItem],
     dependencies=[
         Depends(require_permission("assessments.read"))
     ],
@@ -466,7 +466,7 @@ async def get_responses(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[QuestionnaireResponseItem]:
+) -> list[QuestionnaireResponseItem]:
     """Get all responses for an assessment."""
     service = AssessmentService(session)
     result = await service.get_responses(

@@ -9,10 +9,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
-
+from pydantic import BaseModel, ConfigDict
 
 # -- Enums ----------------------------------------------------------
 
@@ -46,7 +45,7 @@ class ReviewSubmitRequest(BaseModel):
 
     item_type: ReviewItemType
     decision: ReviewDecision
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 # -- Responses ------------------------------------------------------
@@ -72,16 +71,16 @@ class ReviewQueueItem(BaseModel):
     title: str
     description: str
     confidence: float
-    vendor_name: Optional[str] = None
-    assessment_title: Optional[str] = None
+    vendor_name: str | None = None
+    assessment_title: str | None = None
     created_at: datetime
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class ReviewQueueResponse(BaseModel):
     """Paginated review queue."""
 
-    items: List[ReviewQueueItem]
+    items: list[ReviewQueueItem]
     total: int
 
 

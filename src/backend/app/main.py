@@ -6,8 +6,8 @@ Sets up middleware, routers, health checks, and RFC 7807 error handling.
 
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 import redis.asyncio as aioredis
 from fastapi import FastAPI, Request, status
@@ -18,41 +18,41 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from app.core.config import get_settings, settings
+from app.core.config import get_settings
 from app.core.database import close_engine, init_engine
 from app.core.logging import configure_logging, get_logger
 from app.middleware.auth import AuthMiddleware
 from app.middleware.tenant import TenantMiddleware
+from app.modules.admin.router import (
+    router as admin_router,
+)
+from app.modules.ai.router import router as ai_router
 from app.modules.assessments.router import (
     router as assessments_router,
 )
 from app.modules.auth.router import router as auth_router
-from app.modules.frameworks.router import (
-    router as frameworks_router,
+from app.modules.communications.router import (
+    router as communications_router,
 )
-from app.modules.scoring.router import (
-    router as scoring_router,
-)
-from app.modules.vendors.router import router as vendors_router
 from app.modules.evidence.router import (
     router as evidence_router,
 )
-from app.modules.ai.router import router as ai_router
+from app.modules.findings.router import (
+    router as findings_router,
+)
+from app.modules.frameworks.router import (
+    router as frameworks_router,
+)
 from app.modules.monitoring.router import (
     router as monitoring_router,
 )
 from app.modules.reports.router import (
     router as reports_router,
 )
-from app.modules.communications.router import (
-    router as communications_router,
+from app.modules.scoring.router import (
+    router as scoring_router,
 )
-from app.modules.admin.router import (
-    router as admin_router,
-)
-from app.modules.findings.router import (
-    router as findings_router,
-)
+from app.modules.vendors.router import router as vendors_router
 
 logger = get_logger(__name__)
 

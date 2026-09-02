@@ -8,7 +8,7 @@ All endpoints require authentication and are tenant-scoped.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -47,7 +47,7 @@ router = APIRouter(prefix="/scoring", tags=["scoring"])
 
 @router.get(
     "/models",
-    response_model=List[ScoringModelResponse],
+    response_model=list[ScoringModelResponse],
     dependencies=[
         Depends(require_permission("scoring.read"))
     ],
@@ -57,7 +57,7 @@ async def list_models(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[ScoringModelResponse]:
+) -> list[ScoringModelResponse]:
     """List scoring models for the current tenant."""
     service = ScoringService(session)
     return await service.list_models(

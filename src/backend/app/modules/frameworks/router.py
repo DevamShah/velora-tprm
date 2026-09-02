@@ -9,7 +9,7 @@ global reference data.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -69,7 +69,7 @@ async def list_frameworks(
 
 @router.get(
     "/unified-controls",
-    response_model=List[UnifiedControl],
+    response_model=list[UnifiedControl],
     dependencies=[
         Depends(require_permission("frameworks.read"))
     ],
@@ -79,7 +79,7 @@ async def get_unified_controls(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[UnifiedControl]:
+) -> list[UnifiedControl]:
     """Get deduplicated controls across all frameworks."""
     service = FrameworkService(session)
     return await service.get_unified_controls()
@@ -140,7 +140,7 @@ async def get_clause_tree(
 
 @router.get(
     "/{framework_id}/clauses/{clause_id}/mappings",
-    response_model=List[MappingResponse],
+    response_model=list[MappingResponse],
     dependencies=[
         Depends(require_permission("frameworks.read"))
     ],
@@ -152,7 +152,7 @@ async def get_clause_mappings(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[MappingResponse]:
+) -> list[MappingResponse]:
     """Get cross-framework mappings for a clause."""
     service = FrameworkService(session)
     return await service.get_clause_mappings(clause_id)

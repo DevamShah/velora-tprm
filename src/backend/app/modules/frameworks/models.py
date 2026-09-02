@@ -8,7 +8,6 @@ Frameworks are global reference data (not tenant-scoped).
 from __future__ import annotations
 
 import uuid
-from typing import Dict, List, Optional
 
 from sqlalchemy import (
     Boolean,
@@ -32,16 +31,16 @@ class Framework(Base):
     name: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
-    version: Mapped[Optional[str]] = mapped_column(
+    version: Mapped[str | None] = mapped_column(
         String(50), nullable=True
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    framework_type: Mapped[Optional[str]] = mapped_column(
+    framework_type: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    source_url: Mapped[Optional[str]] = mapped_column(
+    source_url: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     clause_count: Mapped[int] = mapped_column(
@@ -50,12 +49,12 @@ class Framework(Base):
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="active"
     )
-    structure: Mapped[Optional[Dict]] = mapped_column(
+    structure: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True
     )
 
     # Relationships
-    clauses: Mapped[List["FrameworkClause"]] = relationship(
+    clauses: Mapped[list[FrameworkClause]] = relationship(
         back_populates="framework",
         lazy="selectin",
         cascade="all, delete-orphan",
@@ -72,7 +71,7 @@ class FrameworkClause(Base):
         ForeignKey("frameworks.id", ondelete="CASCADE"),
         nullable=False,
     )
-    parent_clause_id: Mapped[Optional[uuid.UUID]] = (
+    parent_clause_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey(
@@ -88,10 +87,10 @@ class FrameworkClause(Base):
     title: Mapped[str] = mapped_column(
         String(500), nullable=False
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    domain_tags: Mapped[Optional[List[str]]] = (
+    domain_tags: Mapped[list[str] | None] = (
         mapped_column(
             ARRAY(Text), nullable=True, default=list
         )
@@ -104,30 +103,30 @@ class FrameworkClause(Base):
     )
 
     # Relationships
-    framework: Mapped["Framework"] = relationship(
+    framework: Mapped[Framework] = relationship(
         back_populates="clauses"
     )
-    children: Mapped[List["FrameworkClause"]] = relationship(
+    children: Mapped[list[FrameworkClause]] = relationship(
         back_populates="parent",
         lazy="selectin",
         remote_side="FrameworkClause.parent_clause_id",
         foreign_keys="FrameworkClause.parent_clause_id",
     )
-    parent: Mapped[Optional["FrameworkClause"]] = (
+    parent: Mapped[FrameworkClause | None] = (
         relationship(
             back_populates="children",
             remote_side="FrameworkClause.id",
             foreign_keys="FrameworkClause.parent_clause_id",
         )
     )
-    source_mappings: Mapped[List["ControlMapping"]] = (
+    source_mappings: Mapped[list[ControlMapping]] = (
         relationship(
             foreign_keys="ControlMapping.source_clause_id",
             lazy="noload",
             cascade="all, delete-orphan",
         )
     )
-    target_mappings: Mapped[List["ControlMapping"]] = (
+    target_mappings: Mapped[list[ControlMapping]] = (
         relationship(
             foreign_keys="ControlMapping.target_clause_id",
             lazy="noload",
@@ -167,7 +166,7 @@ class ControlMapping(Base):
     verified: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
-    verified_by: Mapped[Optional[uuid.UUID]] = (
+    verified_by: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),

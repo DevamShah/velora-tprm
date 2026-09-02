@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Dict, Optional
 
 from sqlalchemy import (
     Boolean,
@@ -33,7 +32,7 @@ class ScoringModel(TenantBase):
     name: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     method: Mapped[str] = mapped_column(
@@ -44,18 +43,18 @@ class ScoringModel(TenantBase):
     is_default: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
-    config: Mapped[Optional[Dict]] = mapped_column(
+    config: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True
     )
-    inherent_risk_factors: Mapped[Optional[Dict]] = (
+    inherent_risk_factors: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
-    risk_thresholds: Mapped[Optional[Dict]] = (
+    risk_thresholds: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
 
     # Relationships
-    scores: Mapped[list["VendorScore"]] = relationship(
+    scores: Mapped[list[VendorScore]] = relationship(
         back_populates="scoring_model",
         lazy="noload",
     )
@@ -72,7 +71,7 @@ class VendorScore(TenantBase):
         nullable=False,
         index=True,
     )
-    scoring_model_id: Mapped[Optional[uuid.UUID]] = (
+    scoring_model_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey(
@@ -85,19 +84,19 @@ class VendorScore(TenantBase):
     overall_score: Mapped[float] = mapped_column(
         Float, nullable=False
     )
-    dimension_scores: Mapped[Optional[Dict]] = (
+    dimension_scores: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
-    inherent_score: Mapped[Optional[float]] = (
+    inherent_score: Mapped[float | None] = (
         mapped_column(Float, nullable=True)
     )
-    residual_score: Mapped[Optional[float]] = (
+    residual_score: Mapped[float | None] = (
         mapped_column(Float, nullable=True)
     )
-    external_score: Mapped[Optional[float]] = (
+    external_score: Mapped[float | None] = (
         mapped_column(Float, nullable=True)
     )
-    input_snapshot: Mapped[Optional[Dict]] = (
+    input_snapshot: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
     calculated_at: Mapped[datetime] = mapped_column(
@@ -105,7 +104,7 @@ class VendorScore(TenantBase):
     )
 
     # Relationships
-    scoring_model: Mapped[Optional["ScoringModel"]] = (
+    scoring_model: Mapped[ScoringModel | None] = (
         relationship(back_populates="scores")
     )
 
@@ -123,7 +122,7 @@ class ScoreHistory(TenantBase):
     overall_score: Mapped[float] = mapped_column(
         Float, nullable=False
     )
-    dimension_scores: Mapped[Optional[Dict]] = (
+    dimension_scores: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
     recorded_at: Mapped[datetime] = mapped_column(

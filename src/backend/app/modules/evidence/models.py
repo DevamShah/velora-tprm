@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from sqlalchemy import (
     Boolean,
@@ -37,7 +36,7 @@ class Evidence(TenantBase):
         nullable=False,
         index=True,
     )
-    assessment_id: Mapped[Optional[uuid.UUID]] = (
+    assessment_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey(
@@ -65,23 +64,23 @@ class Evidence(TenantBase):
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="uploaded"
     )
-    parsed_content: Mapped[Optional[Dict]] = (
+    parsed_content: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
-    extraction_summary: Mapped[Optional[Dict]] = (
+    extraction_summary: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
     classification_confidence: Mapped[
-        Optional[float]
+        float | None
     ] = mapped_column(Float, nullable=True)
-    uploaded_by: Mapped[Optional[uuid.UUID]] = (
+    uploaded_by: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         )
     )
-    deleted_at: Mapped[Optional[datetime]] = (
+    deleted_at: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
@@ -89,14 +88,14 @@ class Evidence(TenantBase):
 
     # Relationships
     extractions: Mapped[
-        List["EvidenceExtraction"]
+        list[EvidenceExtraction]
     ] = relationship(
         back_populates="evidence",
         lazy="selectin",
         cascade="all, delete-orphan",
     )
     control_mappings: Mapped[
-        List["EvidenceControlMapping"]
+        list[EvidenceControlMapping]
     ] = relationship(
         back_populates="evidence",
         lazy="selectin",
@@ -134,7 +133,7 @@ class EvidenceControlMapping(TenantBase):
     verified: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
-    verified_by: Mapped[Optional[uuid.UUID]] = (
+    verified_by: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),
@@ -143,7 +142,7 @@ class EvidenceControlMapping(TenantBase):
     )
 
     # Relationships
-    evidence: Mapped["Evidence"] = relationship(
+    evidence: Mapped[Evidence] = relationship(
         back_populates="control_mappings"
     )
 
@@ -168,11 +167,11 @@ class EvidenceExtraction(TenantBase):
     confidence: Mapped[float] = mapped_column(
         Float, nullable=False, default=0.0
     )
-    page_number: Mapped[Optional[int]] = mapped_column(
+    page_number: Mapped[int | None] = mapped_column(
         Integer, nullable=True
     )
 
     # Relationships
-    evidence: Mapped["Evidence"] = relationship(
+    evidence: Mapped[Evidence] = relationship(
         back_populates="extractions"
     )

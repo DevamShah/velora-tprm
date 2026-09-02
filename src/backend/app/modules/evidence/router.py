@@ -7,7 +7,7 @@ All endpoints require authentication. Permissions enforced per-route.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List, Optional
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -114,9 +114,9 @@ async def list_evidence(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-    vendor_id: Optional[uuid.UUID] = Query(None),
-    document_type: Optional[str] = Query(None),
-    status_filter: Optional[str] = Query(
+    vendor_id: uuid.UUID | None = Query(None),
+    document_type: str | None = Query(None),
+    status_filter: str | None = Query(
         None, alias="status"
     ),
     sort_by: str = Query("created_at"),
@@ -175,7 +175,7 @@ async def get_evidence(
 
 @router.get(
     "/{evidence_id}/mappings",
-    response_model=List[EvidenceControlMappingResponse],
+    response_model=list[EvidenceControlMappingResponse],
     dependencies=[
         Depends(require_permission("evidence.read"))
     ],
@@ -186,7 +186,7 @@ async def get_mappings(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[EvidenceControlMappingResponse]:
+) -> list[EvidenceControlMappingResponse]:
     """List control mappings for evidence."""
     service = EvidenceService(session)
     result = await service.get_mappings(

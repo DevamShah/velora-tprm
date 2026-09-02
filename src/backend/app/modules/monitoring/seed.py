@@ -8,8 +8,7 @@ already exist for the demo tenant.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import List
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +18,6 @@ from app.core.seed import DEMO_TENANT_ID
 from app.modules.monitoring.models import (
     Alert,
     AlertRule,
-    MonitoringSignal,
     VendorTimeline,
 )
 from app.modules.vendors.models import Vendor
@@ -30,7 +28,7 @@ logger = get_logger(__name__)
 async def _get_vendor_ids(
     session: AsyncSession,
     tenant_id: uuid.UUID,
-) -> List[uuid.UUID]:
+) -> list[uuid.UUID]:
     """Fetch up to 5 seeded vendor IDs."""
     result = await session.execute(
         select(Vendor.id)
@@ -103,7 +101,7 @@ async def _seed_alert_rules(
 async def _seed_alerts(
     session: AsyncSession,
     tenant_id: uuid.UUID,
-    vendor_ids: List[uuid.UUID],
+    vendor_ids: list[uuid.UUID],
 ) -> int:
     """Seed 5 demo alerts across vendors."""
     count_result = await session.execute(
@@ -121,7 +119,7 @@ async def _seed_alerts(
         )
         return 0
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     alerts_data = [
         {
             "vendor_id": vendor_ids[0],
@@ -221,7 +219,7 @@ async def _seed_alerts(
 async def _seed_timeline(
     session: AsyncSession,
     tenant_id: uuid.UUID,
-    vendor_ids: List[uuid.UUID],
+    vendor_ids: list[uuid.UUID],
 ) -> int:
     """Seed 10 timeline events across vendors."""
     count_result = await session.execute(
@@ -235,7 +233,7 @@ async def _seed_timeline(
     if not vendor_ids:
         return 0
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     events = [
         {
             "vendor_id": vendor_ids[0],

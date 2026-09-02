@@ -8,7 +8,7 @@ the transaction boundary is controlled by the FastAPI dependency.
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,7 +25,6 @@ from app.core.security import (
 )
 from app.modules.auth.models import (
     RefreshToken,
-    Role,
     User,
     UserRole,
 )
@@ -79,7 +78,7 @@ class AuthService:
             return None
 
         # Stamp last login
-        user.last_login_at = datetime.now(timezone.utc)
+        user.last_login_at = datetime.now(UTC)
         return user
 
     # ── Token lifecycle ───────────────────────────────────────
@@ -155,7 +154,7 @@ class AuthService:
             return None
 
         # Revoke the old token
-        stored.revoked_at = datetime.now(timezone.utc)
+        stored.revoked_at = datetime.now(UTC)
 
         # Fetch fresh user
         user = await self.get_user_by_id(payload["sub"])
@@ -175,7 +174,7 @@ class AuthService:
                 RefreshToken.token_hash == token_hash,
                 RefreshToken.revoked_at.is_(None),
             )
-            .values(revoked_at=datetime.now(timezone.utc))
+            .values(revoked_at=datetime.now(UTC))
         )
         return result.rowcount > 0  # type: ignore[return-value]
 
@@ -220,7 +219,7 @@ class AuthService:
         self, user: User, raw_token: str
     ) -> None:
         """Persist a hashed refresh token to the database."""
-        expires_at = datetime.now(timezone.utc) + timedelta(
+        expires_at = datetime.now(UTC) + timedelta(
             days=self._settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS
         )
         record = RefreshToken(

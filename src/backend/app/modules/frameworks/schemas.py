@@ -10,10 +10,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # -- Enums ----------------------------------------------------------
 
@@ -52,11 +51,11 @@ class ClauseResponse(BaseModel):
 
     id: uuid.UUID
     framework_id: uuid.UUID
-    parent_clause_id: Optional[uuid.UUID] = None
+    parent_clause_id: uuid.UUID | None = None
     clause_number: str
     title: str
-    description: Optional[str] = None
-    domain_tags: Optional[List[str]] = None
+    description: str | None = None
+    domain_tags: list[str] | None = None
     depth: int = 0
     order_index: int = 0
     created_at: datetime
@@ -71,11 +70,11 @@ class ClauseTreeNode(BaseModel):
     id: uuid.UUID
     clause_number: str
     title: str
-    description: Optional[str] = None
-    domain_tags: Optional[List[str]] = None
+    description: str | None = None
+    domain_tags: list[str] | None = None
     depth: int = 0
     order_index: int = 0
-    children: List[ClauseTreeNode] = Field(
+    children: list[ClauseTreeNode] = Field(
         default_factory=list
     )
 
@@ -99,12 +98,12 @@ class MappingResponse(BaseModel):
     confidence: float
     source_type: str
     verified: bool
-    source_clause_number: Optional[str] = None
-    source_clause_title: Optional[str] = None
-    source_framework_name: Optional[str] = None
-    target_clause_number: Optional[str] = None
-    target_clause_title: Optional[str] = None
-    target_framework_name: Optional[str] = None
+    source_clause_number: str | None = None
+    source_clause_title: str | None = None
+    source_framework_name: str | None = None
+    target_clause_number: str | None = None
+    target_clause_title: str | None = None
+    target_framework_name: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -119,10 +118,10 @@ class FrameworkResponse(BaseModel):
 
     id: uuid.UUID
     name: str
-    version: Optional[str] = None
-    description: Optional[str] = None
-    framework_type: Optional[str] = None
-    source_url: Optional[str] = None
+    version: str | None = None
+    description: str | None = None
+    framework_type: str | None = None
+    source_url: str | None = None
     clause_count: int = 0
     status: str
     created_at: datetime
@@ -136,14 +135,14 @@ class FrameworkDetailResponse(BaseModel):
 
     id: uuid.UUID
     name: str
-    version: Optional[str] = None
-    description: Optional[str] = None
-    framework_type: Optional[str] = None
-    source_url: Optional[str] = None
+    version: str | None = None
+    description: str | None = None
+    framework_type: str | None = None
+    source_url: str | None = None
     clause_count: int = 0
     status: str
-    structure: Optional[Dict[str, Any]] = None
-    clauses: List[ClauseTreeNode] = Field(
+    structure: dict[str, Any] | None = None
+    clauses: list[ClauseTreeNode] = Field(
         default_factory=list
     )
     created_at: datetime
@@ -153,7 +152,7 @@ class FrameworkDetailResponse(BaseModel):
 class FrameworkListResponse(BaseModel):
     """List of all frameworks."""
 
-    items: List[FrameworkResponse]
+    items: list[FrameworkResponse]
     total: int
 
 
@@ -166,10 +165,10 @@ class UnifiedControl(BaseModel):
     control_id: uuid.UUID
     clause_number: str
     title: str
-    description: Optional[str] = None
-    domain_tags: Optional[List[str]] = None
+    description: str | None = None
+    domain_tags: list[str] | None = None
     framework_name: str
-    mapped_frameworks: List[str] = Field(
+    mapped_frameworks: list[str] = Field(
         default_factory=list
     )
     mapping_count: int = 0

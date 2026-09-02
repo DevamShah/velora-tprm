@@ -7,22 +7,13 @@ All operations are mock implementations for v2.0 MVP.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.logging import get_logger
-from app.modules.assessments.models import (
-    Assessment,
-    QuestionnaireResponse,
-)
-from app.modules.evidence.models import (
-    Evidence,
-    EvidenceControlMapping,
-)
 from app.modules.ai.schemas import (
     AIUsageStats,
     AutoFillResponse,
@@ -30,6 +21,13 @@ from app.modules.ai.schemas import (
     ReviewQueueResponse,
     ReviewSubmitRequest,
     ReviewSubmitResponse,
+)
+from app.modules.assessments.models import (
+    Assessment,
+    QuestionnaireResponse,
+)
+from app.modules.evidence.models import (
+    EvidenceControlMapping,
 )
 
 logger = get_logger(__name__)
@@ -47,7 +45,7 @@ class AIService:
         self,
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
-    ) -> Optional[AutoFillResponse]:
+    ) -> AutoFillResponse | None:
         """Generate mock AI responses for empty questions."""
         query = (
             select(Assessment)
@@ -82,7 +80,7 @@ class AIService:
             )
             resp.review_status = "ai_pending"
             resp.responded_at = datetime.now(
-                timezone.utc
+                UTC
             )
             filled += 1
 
@@ -110,7 +108,7 @@ class AIService:
         tenant_id: uuid.UUID,
     ) -> ReviewQueueResponse:
         """Combine evidence needing review + low-confidence AI responses."""
-        items: List[ReviewQueueItem] = []
+        items: list[ReviewQueueItem] = []
 
         # Evidence mappings needing verification
         ecm_query = select(EvidenceControlMapping).where(
@@ -172,7 +170,7 @@ class AIService:
         tenant_id: uuid.UUID,
         item_id: uuid.UUID,
         data: ReviewSubmitRequest,
-    ) -> Optional[ReviewSubmitResponse]:
+    ) -> ReviewSubmitResponse | None:
         """Process a review decision on a queue item."""
         if data.item_type.value == "evidence_mapping":
             return await self._review_mapping(
@@ -208,7 +206,7 @@ class AIService:
         tenant_id: uuid.UUID,
         item_id: uuid.UUID,
         data: ReviewSubmitRequest,
-    ) -> Optional[ReviewSubmitResponse]:
+    ) -> ReviewSubmitResponse | None:
         """Review an evidence control mapping."""
         result = await self._session.execute(
             select(EvidenceControlMapping).where(
@@ -237,7 +235,7 @@ class AIService:
         tenant_id: uuid.UUID,
         item_id: uuid.UUID,
         data: ReviewSubmitRequest,
-    ) -> Optional[ReviewSubmitResponse]:
+    ) -> ReviewSubmitResponse | None:
         """Review an AI-prefilled response."""
         result = await self._session.execute(
             select(QuestionnaireResponse).where(
@@ -260,7 +258,7 @@ class AIService:
             resp.review_status = "revision_needed"
 
         resp.reviewer_notes = data.notes
-        resp.reviewed_at = datetime.now(timezone.utc)
+        resp.reviewed_at = datetime.now(UTC)
         await self._session.flush()
 
         return ReviewSubmitResponse(

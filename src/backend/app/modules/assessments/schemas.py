@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import (
     BaseModel,
@@ -18,7 +18,6 @@ from pydantic import (
     Field,
     field_validator,
 )
-
 
 # -- Enums ----------------------------------------------------------
 
@@ -72,12 +71,12 @@ class AssessmentTemplateCreate(BaseModel):
     """Create an assessment template."""
 
     name: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = None
-    framework_ids: Optional[List[uuid.UUID]] = None
-    tier_applicability: Optional[List[str]] = None
+    description: str | None = None
+    framework_ids: list[uuid.UUID] | None = None
+    tier_applicability: list[str] | None = None
     is_system: bool = False
-    scoring_weights: Optional[Dict[str, Any]] = None
-    estimated_duration_minutes: Optional[int] = Field(
+    scoring_weights: dict[str, Any] | None = None
+    estimated_duration_minutes: int | None = Field(
         None, ge=1
     )
 
@@ -90,14 +89,14 @@ class AssessmentTemplateResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     name: str
-    description: Optional[str] = None
-    framework_ids: Optional[List[uuid.UUID]] = None
-    tier_applicability: Optional[List[str]] = None
+    description: str | None = None
+    framework_ids: list[uuid.UUID] | None = None
+    tier_applicability: list[str] | None = None
     is_system: bool
     is_active: bool
-    scoring_weights: Optional[Dict[str, Any]] = None
+    scoring_weights: dict[str, Any] | None = None
     question_count: int
-    estimated_duration_minutes: Optional[int] = None
+    estimated_duration_minutes: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -108,23 +107,23 @@ class AssessmentTemplateResponse(BaseModel):
 class QuestionCreate(BaseModel):
     """Create a question in a template or bank."""
 
-    question_bank_id: Optional[uuid.UUID] = None
-    template_id: Optional[uuid.UUID] = None
-    section: Optional[str] = Field(
+    question_bank_id: uuid.UUID | None = None
+    template_id: uuid.UUID | None = None
+    section: str | None = Field(
         None, max_length=255
     )
-    subsection: Optional[str] = Field(
+    subsection: str | None = Field(
         None, max_length=255
     )
     question_text: str = Field(min_length=1)
     question_type: QuestionType = QuestionType.text
-    options: Optional[Dict[str, Any]] = None
+    options: dict[str, Any] | None = None
     is_required: bool = True
     weight: float = Field(default=1.0, ge=0.0, le=10.0)
-    risk_domain: Optional[str] = Field(
+    risk_domain: str | None = Field(
         None, max_length=100
     )
-    guidance_text: Optional[str] = None
+    guidance_text: str | None = None
     order_index: int = Field(default=0, ge=0)
 
 
@@ -135,17 +134,17 @@ class QuestionResponse(BaseModel):
 
     id: uuid.UUID
     tenant_id: uuid.UUID
-    question_bank_id: Optional[uuid.UUID] = None
-    template_id: Optional[uuid.UUID] = None
-    section: Optional[str] = None
-    subsection: Optional[str] = None
+    question_bank_id: uuid.UUID | None = None
+    template_id: uuid.UUID | None = None
+    section: str | None = None
+    subsection: str | None = None
     question_text: str
     question_type: str
-    options: Optional[Dict[str, Any]] = None
+    options: dict[str, Any] | None = None
     is_required: bool
     weight: float
-    risk_domain: Optional[str] = None
-    guidance_text: Optional[str] = None
+    risk_domain: str | None = None
+    guidance_text: str | None = None
     order_index: int
     created_at: datetime
     updated_at: datetime
@@ -160,19 +159,19 @@ class AssessmentCreate(BaseModel):
     vendor_id: uuid.UUID
     template_id: uuid.UUID
     title: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = None
-    due_date: Optional[datetime] = None
+    description: str | None = None
+    due_date: datetime | None = None
 
 
 class AssessmentUpdate(BaseModel):
     """Update assessment metadata."""
 
-    title: Optional[str] = Field(
+    title: str | None = Field(
         None, min_length=1, max_length=255
     )
-    description: Optional[str] = None
-    due_date: Optional[datetime] = None
-    assigned_to: Optional[uuid.UUID] = None
+    description: str | None = None
+    due_date: datetime | None = None
+    assigned_to: uuid.UUID | None = None
 
 
 class AssessmentResponse(BaseModel):
@@ -183,27 +182,27 @@ class AssessmentResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     vendor_id: uuid.UUID
-    template_id: Optional[uuid.UUID] = None
+    template_id: uuid.UUID | None = None
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     status: str
-    assigned_to: Optional[uuid.UUID] = None
-    distributed_at: Optional[datetime] = None
-    submitted_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    due_date: Optional[datetime] = None
-    overall_score: Optional[float] = None
-    ai_confidence: Optional[float] = None
+    assigned_to: uuid.UUID | None = None
+    distributed_at: datetime | None = None
+    submitted_at: datetime | None = None
+    completed_at: datetime | None = None
+    due_date: datetime | None = None
+    overall_score: float | None = None
+    ai_confidence: float | None = None
     created_at: datetime
     updated_at: datetime
-    vendor_name: Optional[str] = None
-    template_name: Optional[str] = None
+    vendor_name: str | None = None
+    template_name: str | None = None
 
 
 class AssessmentListResponse(BaseModel):
     """Paginated assessment list."""
 
-    items: List[AssessmentResponse]
+    items: list[AssessmentResponse]
     total: int
     page: int
     page_size: int
@@ -217,20 +216,20 @@ class QuestionnaireResponseItem(BaseModel):
     id: uuid.UUID
     assessment_id: uuid.UUID
     question_id: uuid.UUID
-    response_value: Optional[str] = None
-    response_text: Optional[str] = None
-    response_options: Optional[Dict[str, Any]] = None
+    response_value: str | None = None
+    response_text: str | None = None
+    response_options: dict[str, Any] | None = None
     ai_prefilled: bool
-    ai_confidence: Optional[float] = None
-    ai_citations: Optional[Dict[str, Any]] = None
-    reviewer_id: Optional[uuid.UUID] = None
+    ai_confidence: float | None = None
+    ai_citations: dict[str, Any] | None = None
+    reviewer_id: uuid.UUID | None = None
     review_status: str
-    reviewer_notes: Optional[str] = None
-    responded_at: Optional[datetime] = None
-    reviewed_at: Optional[datetime] = None
+    reviewer_notes: str | None = None
+    responded_at: datetime | None = None
+    reviewed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
-    question: Optional[QuestionResponse] = None
+    question: QuestionResponse | None = None
 
 
 class AssessmentDetailResponse(BaseModel):
@@ -241,24 +240,24 @@ class AssessmentDetailResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     vendor_id: uuid.UUID
-    template_id: Optional[uuid.UUID] = None
+    template_id: uuid.UUID | None = None
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     status: str
-    assigned_to: Optional[uuid.UUID] = None
-    distributed_at: Optional[datetime] = None
-    submitted_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    due_date: Optional[datetime] = None
-    overall_score: Optional[float] = None
-    ai_confidence: Optional[float] = None
-    scoring_details: Optional[Dict[str, Any]] = None
-    reminder_schedule: Optional[Dict[str, Any]] = None
+    assigned_to: uuid.UUID | None = None
+    distributed_at: datetime | None = None
+    submitted_at: datetime | None = None
+    completed_at: datetime | None = None
+    due_date: datetime | None = None
+    overall_score: float | None = None
+    ai_confidence: float | None = None
+    scoring_details: dict[str, Any] | None = None
+    reminder_schedule: dict[str, Any] | None = None
     created_at: datetime
     updated_at: datetime
-    vendor_name: Optional[str] = None
-    template_name: Optional[str] = None
-    responses: List[QuestionnaireResponseItem] = []
+    vendor_name: str | None = None
+    template_name: str | None = None
+    responses: list[QuestionnaireResponseItem] = []
     response_count: int = 0
     answered_count: int = 0
 
@@ -269,12 +268,12 @@ class AssessmentDetailResponse(BaseModel):
 class QuestionnaireResponseUpdate(BaseModel):
     """Update a questionnaire response (fill or review)."""
 
-    response_value: Optional[str] = Field(
+    response_value: str | None = Field(
         None, max_length=500
     )
-    response_text: Optional[str] = None
-    review_status: Optional[ReviewStatus] = None
-    reviewer_notes: Optional[str] = None
+    response_text: str | None = None
+    review_status: ReviewStatus | None = None
+    reviewer_notes: str | None = None
 
 
 # -- Review Queue ---------------------------------------------------
@@ -290,16 +289,16 @@ class ReviewQueueItem(BaseModel):
     assessment_title: str
     vendor_name: str
     question_text: str
-    section: Optional[str] = None
-    response_value: Optional[str] = None
-    ai_confidence: Optional[float] = None
+    section: str | None = None
+    response_value: str | None = None
+    ai_confidence: float | None = None
     review_status: str
 
 
 class ReviewQueueResponse(BaseModel):
     """Paginated review queue."""
 
-    items: List[ReviewQueueItem]
+    items: list[ReviewQueueItem]
     total: int
 
 
@@ -309,10 +308,10 @@ class ReviewQueueResponse(BaseModel):
 class AssessmentFilterParams(BaseModel):
     """Query parameters for assessment list filtering."""
 
-    status: Optional[AssessmentStatus] = None
-    vendor_id: Optional[uuid.UUID] = None
-    template_id: Optional[uuid.UUID] = None
-    search: Optional[str] = Field(
+    status: AssessmentStatus | None = None
+    vendor_id: uuid.UUID | None = None
+    template_id: uuid.UUID | None = None
+    search: str | None = Field(
         None, max_length=255
     )
     sort_by: str = Field(default="created_at")

@@ -8,8 +8,7 @@ Tenant-scoped. Calculation logic delegated to engine.py.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,13 +16,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import get_logger
 from app.modules.scoring import engine
 from app.modules.scoring.models import (
-    ScoreHistory, ScoringModel, VendorScore,
+    ScoreHistory,
+    ScoringModel,
+    VendorScore,
 )
 from app.modules.scoring.schemas import (
-    BulkCalculateResponse, PortfolioSummary,
-    ScoreBreakdown, ScoreHistoryItem,
-    ScoreHistoryResponse, ScoringModelCreate,
-    ScoringModelResponse, ScoringModelUpdate,
+    BulkCalculateResponse,
+    PortfolioSummary,
+    ScoreBreakdown,
+    ScoreHistoryItem,
+    ScoreHistoryResponse,
+    ScoringModelCreate,
+    ScoringModelResponse,
+    ScoringModelUpdate,
     TierDistribution,
 )
 from app.modules.vendors.models import Vendor
@@ -39,7 +44,7 @@ class ScoringService:
 
     async def list_models(
         self, tenant_id: uuid.UUID
-    ) -> List[ScoringModelResponse]:
+    ) -> list[ScoringModelResponse]:
         """List scoring models for a tenant."""
         query = (
             select(ScoringModel)
@@ -83,7 +88,7 @@ class ScoringService:
         tenant_id: uuid.UUID,
         model_id: uuid.UUID,
         data: ScoringModelUpdate,
-    ) -> Optional[ScoringModelResponse]:
+    ) -> ScoringModelResponse | None:
         """Update an existing scoring model."""
         model = await self._get_model_or_none(tenant_id, model_id)
         if model is None:
@@ -109,8 +114,8 @@ class ScoringService:
         self,
         tenant_id: uuid.UUID,
         vendor_id: uuid.UUID,
-        scoring_model_id: Optional[uuid.UUID] = None,
-    ) -> Optional[ScoreBreakdown]:
+        scoring_model_id: uuid.UUID | None = None,
+    ) -> ScoreBreakdown | None:
         """Run scoring algorithm for a vendor."""
         vendor = await self._get_vendor(
             tenant_id, vendor_id
@@ -131,12 +136,12 @@ class ScoringService:
     async def bulk_calculate(
         self,
         tenant_id: uuid.UUID,
-        vendor_ids: List[uuid.UUID],
-        scoring_model_id: Optional[uuid.UUID] = None,
+        vendor_ids: list[uuid.UUID],
+        scoring_model_id: uuid.UUID | None = None,
     ) -> BulkCalculateResponse:
         """Calculate scores for multiple vendors."""
-        results: List[ScoreBreakdown] = []
-        errors: List[Dict[str, str]] = []
+        results: list[ScoreBreakdown] = []
+        errors: list[dict[str, str]] = []
         for vid in vendor_ids:
             try:
                 r = await self.calculate_score(
@@ -165,7 +170,7 @@ class ScoringService:
         self,
         tenant_id: uuid.UUID,
         vendor_id: uuid.UUID,
-    ) -> Optional[ScoreBreakdown]:
+    ) -> ScoreBreakdown | None:
         """Get the most recent score for a vendor."""
         query = (
             select(VendorScore)
@@ -236,7 +241,7 @@ class ScoringService:
             2,
         )
         tier_dist = TierDistribution()
-        risk_counts: Dict[str, int] = {}
+        risk_counts: dict[str, int] = {}
         for s in latest:
             level = engine.classify_risk(s.overall_score, None)
             risk_counts[level] = (
@@ -263,7 +268,7 @@ class ScoringService:
         dims = engine.extract_dimensions(model)
         dim_scores = engine.calculate_dimensions(vendor, dims)
         overall = engine.aggregate_score(model.method, dim_scores, dims)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         inherent = engine.calculate_inherent(vendor, model)
         residual, external = max(0.0, overall), vendor.external_rating_score
         score = VendorScore(
@@ -293,14 +298,14 @@ class ScoringService:
 
     async def _get_model_or_none(
         self, tenant_id: uuid.UUID, model_id: uuid.UUID,
-    ) -> Optional[ScoringModel]:
+    ) -> ScoringModel | None:
         r = await self._session.execute(select(ScoringModel).where(
             ScoringModel.id == model_id, ScoringModel.tenant_id == tenant_id))
         return r.scalars().first()
 
     async def _resolve_model(
-        self, tenant_id: uuid.UUID, model_id: Optional[uuid.UUID],
-    ) -> Optional[ScoringModel]:
+        self, tenant_id: uuid.UUID, model_id: uuid.UUID | None,
+    ) -> ScoringModel | None:
         if model_id:
             return await self._get_model_or_none(tenant_id, model_id)
         r = await self._session.execute(select(ScoringModel).where(
@@ -309,14 +314,14 @@ class ScoringService:
 
     async def _get_vendor(
         self, tenant_id: uuid.UUID, vendor_id: uuid.UUID,
-    ) -> Optional[Vendor]:
+    ) -> Vendor | None:
         r = await self._session.execute(select(Vendor).where(
             Vendor.id == vendor_id, Vendor.tenant_id == tenant_id,
             Vendor.deleted_at.is_(None)))
         return r.scalars().first()
 
     async def _clear_default(
-        self, tenant_id: uuid.UUID, exclude: Optional[uuid.UUID] = None,
+        self, tenant_id: uuid.UUID, exclude: uuid.UUID | None = None,
     ) -> None:
         q = select(ScoringModel).where(
             ScoringModel.tenant_id == tenant_id, ScoringModel.is_default.is_(True))
@@ -326,8 +331,8 @@ class ScoringService:
             m.is_default = False
 
     async def _get_thresholds(
-        self, tenant_id: uuid.UUID, model_id: Optional[uuid.UUID],
-    ) -> Optional[Dict]:
+        self, tenant_id: uuid.UUID, model_id: uuid.UUID | None,
+    ) -> dict | None:
         if not model_id:
             return None
         m = await self._get_model_or_none(tenant_id, model_id)
@@ -346,7 +351,7 @@ class ScoringService:
 
     @staticmethod
     def _score_to_breakdown(
-        score: VendorScore, thresholds: Optional[Dict],
+        score: VendorScore, thresholds: dict | None,
     ) -> ScoreBreakdown:
         return ScoreBreakdown(
             id=score.id, vendor_id=score.vendor_id,

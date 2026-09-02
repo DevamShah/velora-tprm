@@ -7,7 +7,6 @@ All DB queries run inside the caller-provided async session.
 from __future__ import annotations
 
 import uuid
-from typing import List, Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -86,7 +85,7 @@ class ReportsService:
     async def generate_report(
         self,
         tenant_id: uuid.UUID,
-        template_id: Optional[uuid.UUID],
+        template_id: uuid.UUID | None,
         title: str,
         fmt: str,
         generated_by: uuid.UUID,
@@ -152,7 +151,7 @@ class ReportsService:
         self,
         tenant_id: uuid.UUID,
         report_id: uuid.UUID,
-    ) -> Optional[ReportResponse]:
+    ) -> ReportResponse | None:
         """Fetch a single generated report."""
         result = await self._session.execute(
             select(GeneratedReport).where(
@@ -170,7 +169,7 @@ class ReportsService:
     async def list_templates(
         self,
         tenant_id: uuid.UUID,
-    ) -> List[ReportTemplateResponse]:
+    ) -> list[ReportTemplateResponse]:
         """List all report templates for tenant."""
         result = await self._session.execute(
             select(ReportTemplate).where(
@@ -189,7 +188,7 @@ class ReportsService:
         self,
         tenant_id: uuid.UUID,
         user_id: uuid.UUID,
-    ) -> Optional[DashboardConfigResponse]:
+    ) -> DashboardConfigResponse | None:
         """Fetch user's dashboard configuration."""
         result = await self._session.execute(
             select(DashboardConfig).where(
@@ -381,7 +380,7 @@ class ReportsService:
 
     async def _get_avg_risk_score(
         self, tenant_id: uuid.UUID
-    ) -> Optional[float]:
+    ) -> float | None:
         """Average inherent risk score across vendors."""
         result = await self._session.execute(
             select(
@@ -399,7 +398,7 @@ class ReportsService:
 
     async def _get_recent_alerts(
         self, tenant_id: uuid.UUID
-    ) -> List[RecentAlert]:
+    ) -> list[RecentAlert]:
         """Fetch 5 most recent alerts."""
         result = await self._session.execute(
             select(Alert)
@@ -423,7 +422,7 @@ class ReportsService:
 
     async def _get_top_risk_vendors(
         self, tenant_id: uuid.UUID
-    ) -> List[TopRiskVendor]:
+    ) -> list[TopRiskVendor]:
         """Fetch top 5 vendors by inherent risk score."""
         result = await self._session.execute(
             select(Vendor)

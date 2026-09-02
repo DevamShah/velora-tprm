@@ -8,8 +8,7 @@ State machine transitions are enforced at the service layer.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Set
+from datetime import UTC, datetime
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,7 +41,7 @@ logger = get_logger(__name__)
 
 # -- State machine valid transitions --------------------------------
 
-VALID_TRANSITIONS: Dict[str, Set[str]] = {
+VALID_TRANSITIONS: dict[str, set[str]] = {
     "draft": {"distributed", "cancelled"},
     "distributed": {"in_progress", "cancelled"},
     "in_progress": {"submitted", "cancelled"},
@@ -64,7 +63,7 @@ class AssessmentService:
     async def list_templates(
         self,
         tenant_id: uuid.UUID,
-    ) -> List[AssessmentTemplateResponse]:
+    ) -> list[AssessmentTemplateResponse]:
         """List active assessment templates for a tenant."""
         query = select(AssessmentTemplate).where(
             AssessmentTemplate.tenant_id == tenant_id,
@@ -194,7 +193,7 @@ class AssessmentService:
         self,
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
-    ) -> Optional[AssessmentDetailResponse]:
+    ) -> AssessmentDetailResponse | None:
         """Fetch assessment with responses, template, vendor."""
         query = (
             select(Assessment)
@@ -223,7 +222,7 @@ class AssessmentService:
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
         data: AssessmentUpdate,
-    ) -> Optional[AssessmentResponse]:
+    ) -> AssessmentResponse | None:
         """Update assessment metadata. Only in draft status."""
         assessment = await self._get_assessment_or_none(
             tenant_id, assessment_id
@@ -248,7 +247,7 @@ class AssessmentService:
         self,
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
-    ) -> Optional[AssessmentResponse]:
+    ) -> AssessmentResponse | None:
         """Distribute assessment to vendor for completion."""
         assessment = await self._get_assessment_or_none(
             tenant_id, assessment_id
@@ -261,7 +260,7 @@ class AssessmentService:
         )
         assessment.status = "distributed"
         assessment.distributed_at = datetime.now(
-            timezone.utc
+            UTC
         )
         await self._session.flush()
 
@@ -277,7 +276,7 @@ class AssessmentService:
         self,
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
-    ) -> Optional[AssessmentResponse]:
+    ) -> AssessmentResponse | None:
         """Submit assessment after vendor completes responses."""
         assessment = await self._get_assessment_or_none(
             tenant_id, assessment_id
@@ -294,7 +293,7 @@ class AssessmentService:
 
         assessment.status = "submitted"
         assessment.submitted_at = datetime.now(
-            timezone.utc
+            UTC
         )
         await self._session.flush()
 
@@ -311,7 +310,7 @@ class AssessmentService:
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
         reviewer_id: uuid.UUID,
-    ) -> Optional[AssessmentResponse]:
+    ) -> AssessmentResponse | None:
         """Assign reviewer and transition to under_review."""
         assessment = await self._get_assessment_or_none(
             tenant_id, assessment_id
@@ -339,7 +338,7 @@ class AssessmentService:
         self,
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
-    ) -> Optional[AssessmentResponse]:
+    ) -> AssessmentResponse | None:
         """Complete assessment with scoring calculation."""
         assessment = await self._get_assessment_or_none(
             tenant_id, assessment_id
@@ -356,7 +355,7 @@ class AssessmentService:
         )
         assessment.status = "completed"
         assessment.completed_at = datetime.now(
-            timezone.utc
+            UTC
         )
         assessment.overall_score = score_data["score"]
         assessment.scoring_details = score_data
@@ -375,7 +374,7 @@ class AssessmentService:
         self,
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
-    ) -> Optional[AssessmentResponse]:
+    ) -> AssessmentResponse | None:
         """Cancel an assessment from any active status."""
         assessment = await self._get_assessment_or_none(
             tenant_id, assessment_id
@@ -401,7 +400,7 @@ class AssessmentService:
         self,
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
-    ) -> Optional[List[QuestionnaireResponseItem]]:
+    ) -> list[QuestionnaireResponseItem] | None:
         """Get all responses for an assessment with questions."""
         assessment = await self._get_assessment_or_none(
             tenant_id, assessment_id
@@ -438,7 +437,7 @@ class AssessmentService:
         assessment_id: uuid.UUID,
         response_id: uuid.UUID,
         data: QuestionnaireResponseUpdate,
-    ) -> Optional[QuestionnaireResponseItem]:
+    ) -> QuestionnaireResponseItem | None:
         """Update a single questionnaire response."""
         query = select(QuestionnaireResponse).where(
             QuestionnaireResponse.id == response_id,
@@ -452,7 +451,7 @@ class AssessmentService:
             return None
 
         update_data = data.model_dump(exclude_unset=True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if "response_value" in update_data:
             response.response_value = update_data[
@@ -559,7 +558,7 @@ class AssessmentService:
         self,
         tenant_id: uuid.UUID,
         template_id: uuid.UUID,
-    ) -> Optional[AssessmentTemplate]:
+    ) -> AssessmentTemplate | None:
         """Fetch an active template or return None."""
         result = await self._session.execute(
             select(AssessmentTemplate).where(
@@ -574,7 +573,7 @@ class AssessmentService:
         self,
         tenant_id: uuid.UUID,
         assessment_id: uuid.UUID,
-    ) -> Optional[Assessment]:
+    ) -> Assessment | None:
         """Fetch an assessment or return None."""
         result = await self._session.execute(
             select(Assessment).where(
@@ -654,7 +653,7 @@ class AssessmentService:
     async def _calculate_score(
         self,
         assessment_id: uuid.UUID,
-    ) -> Dict:
+    ) -> dict:
         """Calculate weighted score from responses."""
         query = (
             select(QuestionnaireResponse)
@@ -673,7 +672,7 @@ class AssessmentService:
 
         total_weight = 0.0
         weighted_score = 0.0
-        domain_scores: Dict[str, Dict] = {}
+        domain_scores: dict[str, dict] = {}
 
         for r in responses:
             weight = (

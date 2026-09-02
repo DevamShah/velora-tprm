@@ -8,7 +8,6 @@ and default scoring model configuration.
 from __future__ import annotations
 
 import uuid
-from typing import Dict, List
 
 # Stable namespace for deterministic UUIDs
 _NS = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
@@ -88,9 +87,9 @@ def _expand(
     framework_id: uuid.UUID,
     prefix: str,
     sections: list,
-) -> List[dict]:
+) -> list[dict]:
     """Expand section tuples into clause dicts."""
-    clauses: List[dict] = []
+    clauses: list[dict] = []
     order = 0
     for sec_num, sec_title, children in sections:
         pid = uid(f"{prefix}_{sec_num}")
@@ -287,7 +286,7 @@ MAPPINGS = [
 
 # -- Default scoring model config ---------------------------------
 
-DEFAULT_MODEL_CONFIG: Dict = {
+DEFAULT_MODEL_CONFIG: dict = {
     "dimensions": [
         {
             "name": "Security Posture",
@@ -317,14 +316,14 @@ DEFAULT_MODEL_CONFIG: Dict = {
     ]
 }
 
-DEFAULT_THRESHOLDS: Dict = {
+DEFAULT_THRESHOLDS: dict = {
     "critical": 25.0,
     "high": 50.0,
     "medium": 75.0,
     "low": 100.0,
 }
 
-DEFAULT_INHERENT_FACTORS: Dict = {
+DEFAULT_INHERENT_FACTORS: dict = {
     "data_classification": {
         "restricted": 90,
         "confidential": 70,

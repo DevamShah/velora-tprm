@@ -7,7 +7,7 @@ All endpoints require authentication. Permissions enforced per-route.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List, Optional
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -62,11 +62,11 @@ async def list_alerts(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-    priority: Optional[str] = Query(None),
-    status_filter: Optional[str] = Query(
+    priority: str | None = Query(None),
+    status_filter: str | None = Query(
         None, alias="status"
     ),
-    vendor_id: Optional[uuid.UUID] = Query(None),
+    vendor_id: uuid.UUID | None = Query(None),
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
     page: int = Query(1, ge=1),
@@ -253,7 +253,7 @@ async def get_vendor_timeline(
 
 @router.get(
     "/alert-rules",
-    response_model=List[AlertRuleResponse],
+    response_model=list[AlertRuleResponse],
     dependencies=[
         Depends(
             require_permission("monitoring.read")
@@ -265,7 +265,7 @@ async def list_alert_rules(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[AlertRuleResponse]:
+) -> list[AlertRuleResponse]:
     """List all alert rules."""
     service = MonitoringService(session)
     return await service.list_alert_rules(

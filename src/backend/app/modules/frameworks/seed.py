@@ -9,14 +9,13 @@ Run via: python -m app.modules.frameworks.seed
 from __future__ import annotations
 
 import uuid
-from typing import Dict, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.logging import get_logger
 # Import auth models to resolve FK references (control_mappings.verified_by -> users.id)
 import app.modules.auth.models  # noqa: F401
+from app.core.logging import get_logger
 from app.modules.frameworks.models import (
     ControlMapping,
     Framework,
@@ -38,8 +37,8 @@ logger = get_logger(__name__)
 
 async def seed_frameworks(
     session: AsyncSession,
-    tenant_id: Optional[uuid.UUID] = None,
-) -> Dict[str, int]:
+    tenant_id: uuid.UUID | None = None,
+) -> dict[str, int]:
     """
     Seed frameworks, clauses, mappings, and default model.
 

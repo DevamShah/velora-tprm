@@ -8,7 +8,6 @@ are stored hashed to prevent theft via DB compromise.
 
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from sqlalchemy import (
     Boolean,
@@ -64,18 +63,18 @@ class User(TenantBase):
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
-    last_login_at: Mapped[Optional[datetime]] = mapped_column(
+    last_login_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     mfa_enabled: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
-    notification_preferences: Mapped[Optional[Dict]] = mapped_column(
+    notification_preferences: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True, default=dict
     )
 
     # Relationships
-    user_roles: Mapped[List["UserRole"]] = relationship(
+    user_roles: Mapped[list["UserRole"]] = relationship(
         back_populates="user", lazy="selectin"
     )
 
@@ -88,10 +87,10 @@ class Role(TenantBase):
     name: Mapped[str] = mapped_column(
         String(100), nullable=False
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         String(500), nullable=True
     )
-    permissions: Mapped[List[str]] = mapped_column(
+    permissions: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=list
     )
     is_system: Mapped[bool] = mapped_column(
@@ -102,7 +101,7 @@ class Role(TenantBase):
     )
 
     # Relationships
-    user_roles: Mapped[List["UserRole"]] = relationship(
+    user_roles: Mapped[list["UserRole"]] = relationship(
         back_populates="role", lazy="selectin"
     )
 
@@ -127,10 +126,10 @@ class UserRole(Base):
     granted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
-    granted_by: Mapped[Optional[uuid.UUID]] = mapped_column(
+    granted_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
     )
-    expires_at: Mapped[Optional[datetime]] = mapped_column(
+    expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
@@ -156,9 +155,9 @@ class RefreshToken(TenantBase):
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
-    revoked_at: Mapped[Optional[datetime]] = mapped_column(
+    revoked_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    device_info: Mapped[Optional[str]] = mapped_column(
+    device_info: Mapped[str | None] = mapped_column(
         String(500), nullable=True
     )

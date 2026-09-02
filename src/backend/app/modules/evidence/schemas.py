@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import (
     BaseModel,
@@ -17,7 +17,6 @@ from pydantic import (
     Field,
     field_validator,
 )
-
 
 # -- Enums ----------------------------------------------------------
 
@@ -67,7 +66,7 @@ class EvidenceUploadRequest(BaseModel):
     """Request to generate a presigned upload URL."""
 
     vendor_id: uuid.UUID
-    assessment_id: Optional[uuid.UUID] = None
+    assessment_id: uuid.UUID | None = None
     filename: str = Field(min_length=1, max_length=500)
     file_size: int = Field(ge=1, le=104857600)
     mime_type: str = Field(max_length=100)
@@ -84,7 +83,7 @@ class MappingVerifyRequest(BaseModel):
     """Verify or reject an evidence-to-control mapping."""
 
     verified: bool
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 # -- Filter ---------------------------------------------------------
@@ -93,9 +92,9 @@ class MappingVerifyRequest(BaseModel):
 class EvidenceFilterParams(BaseModel):
     """Query parameters for evidence listing."""
 
-    vendor_id: Optional[uuid.UUID] = None
-    document_type: Optional[DocumentType] = None
-    status: Optional[EvidenceStatus] = None
+    vendor_id: uuid.UUID | None = None
+    document_type: DocumentType | None = None
+    status: EvidenceStatus | None = None
     sort_by: str = Field(default="created_at")
     sort_order: SortOrder = SortOrder.desc
     page: int = Field(default=1, ge=1)
@@ -130,7 +129,7 @@ class EvidenceExtractionResponse(BaseModel):
     field_name: str
     field_value: str
     confidence: float
-    page_number: Optional[int] = None
+    page_number: int | None = None
     created_at: datetime
 
 
@@ -145,7 +144,7 @@ class EvidenceControlMappingResponse(BaseModel):
     coverage_type: str
     confidence: float
     verified: bool
-    verified_by: Optional[uuid.UUID] = None
+    verified_by: uuid.UUID | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -158,15 +157,15 @@ class EvidenceResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     vendor_id: uuid.UUID
-    assessment_id: Optional[uuid.UUID] = None
+    assessment_id: uuid.UUID | None = None
     filename: str
     file_size: int
     mime_type: str
     s3_key: str
     document_type: str
     status: str
-    classification_confidence: Optional[float] = None
-    uploaded_by: Optional[uuid.UUID] = None
+    classification_confidence: float | None = None
+    uploaded_by: uuid.UUID | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -174,10 +173,10 @@ class EvidenceResponse(BaseModel):
 class EvidenceDetailResponse(EvidenceResponse):
     """Full evidence detail with extractions and mappings."""
 
-    parsed_content: Optional[Dict[str, Any]] = None
-    extraction_summary: Optional[Dict[str, Any]] = None
-    extractions: List[EvidenceExtractionResponse] = []
-    control_mappings: List[
+    parsed_content: dict[str, Any] | None = None
+    extraction_summary: dict[str, Any] | None = None
+    extractions: list[EvidenceExtractionResponse] = []
+    control_mappings: list[
         EvidenceControlMappingResponse
     ] = []
 
@@ -185,7 +184,7 @@ class EvidenceDetailResponse(EvidenceResponse):
 class EvidenceListResponse(BaseModel):
     """Paginated evidence list."""
 
-    items: List[EvidenceResponse]
+    items: list[EvidenceResponse]
     total: int
     page: int
     page_size: int

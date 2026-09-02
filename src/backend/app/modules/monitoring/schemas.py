@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import (
     BaseModel,
@@ -17,7 +17,6 @@ from pydantic import (
     Field,
     field_validator,
 )
-
 
 # -- Enums ----------------------------------------------------------
 
@@ -65,7 +64,7 @@ class SortOrder(str, Enum):
 class AlertResolveRequest(BaseModel):
     """Resolve an alert with notes."""
 
-    notes: Optional[str] = Field(
+    notes: str | None = Field(
         None, max_length=2000
     )
 
@@ -77,22 +76,22 @@ class AlertRuleCreate(BaseModel):
     """Create an alert rule."""
 
     name: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = None
-    conditions: Dict[str, Any]
-    actions: Dict[str, Any]
+    description: str | None = None
+    conditions: dict[str, Any]
+    actions: dict[str, Any]
     is_active: bool = True
 
 
 class AlertRuleUpdate(BaseModel):
     """Update an alert rule — all fields optional."""
 
-    name: Optional[str] = Field(
+    name: str | None = Field(
         None, min_length=1, max_length=255
     )
-    description: Optional[str] = None
-    conditions: Optional[Dict[str, Any]] = None
-    actions: Optional[Dict[str, Any]] = None
-    is_active: Optional[bool] = None
+    description: str | None = None
+    conditions: dict[str, Any] | None = None
+    actions: dict[str, Any] | None = None
+    is_active: bool | None = None
 
 
 # -- Filter ---------------------------------------------------------
@@ -101,9 +100,9 @@ class AlertRuleUpdate(BaseModel):
 class AlertFilterParams(BaseModel):
     """Query parameters for alert listing."""
 
-    priority: Optional[AlertPriority] = None
-    status: Optional[AlertStatus] = None
-    vendor_id: Optional[uuid.UUID] = None
+    priority: AlertPriority | None = None
+    status: AlertStatus | None = None
+    vendor_id: uuid.UUID | None = None
     sort_by: str = Field(default="created_at")
     sort_order: SortOrder = SortOrder.desc
     page: int = Field(default=1, ge=1)
@@ -139,14 +138,14 @@ class AlertResponse(BaseModel):
     priority: str
     status: str
     title: str
-    description: Optional[str] = None
-    signal_ids: Optional[List[uuid.UUID]] = None
-    impact_assessment: Optional[Dict[str, Any]] = None
-    acknowledged_by: Optional[uuid.UUID] = None
-    resolved_by: Optional[uuid.UUID] = None
-    acknowledged_at: Optional[datetime] = None
-    resolved_at: Optional[datetime] = None
-    resolution_notes: Optional[str] = None
+    description: str | None = None
+    signal_ids: list[uuid.UUID] | None = None
+    impact_assessment: dict[str, Any] | None = None
+    acknowledged_by: uuid.UUID | None = None
+    resolved_by: uuid.UUID | None = None
+    acknowledged_at: datetime | None = None
+    resolved_at: datetime | None = None
+    resolution_notes: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -154,7 +153,7 @@ class AlertResponse(BaseModel):
 class AlertListResponse(BaseModel):
     """Paginated alert list."""
 
-    items: List[AlertResponse]
+    items: list[AlertResponse]
     total: int
     page: int
     page_size: int
@@ -168,9 +167,9 @@ class AlertRuleResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     name: str
-    description: Optional[str] = None
-    conditions: Dict[str, Any]
-    actions: Dict[str, Any]
+    description: str | None = None
+    conditions: dict[str, Any]
+    actions: dict[str, Any]
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -185,9 +184,9 @@ class VendorTimelineEvent(BaseModel):
     vendor_id: uuid.UUID
     event_type: str
     title: str
-    description: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    actor_id: Optional[uuid.UUID] = None
+    description: str | None = None
+    metadata: dict[str, Any] | None = None
+    actor_id: uuid.UUID | None = None
     created_at: datetime
 
 
@@ -195,7 +194,7 @@ class VendorTimelineResponse(BaseModel):
     """Chronological vendor timeline."""
 
     vendor_id: uuid.UUID
-    events: List[VendorTimelineEvent]
+    events: list[VendorTimelineEvent]
     total: int
 
 
@@ -207,9 +206,9 @@ class SignalIngestRequest(BaseModel):
     signal_type: str = Field(min_length=1)
     severity: SignalSeverity = SignalSeverity.info
     title: str = Field(min_length=1, max_length=500)
-    description: Optional[str] = None
-    raw_data: Optional[Dict[str, Any]] = None
-    dedup_key: Optional[str] = None
+    description: str | None = None
+    raw_data: dict[str, Any] | None = None
+    dedup_key: str | None = None
 
 
 class SignalResponse(BaseModel):

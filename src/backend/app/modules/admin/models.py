@@ -8,7 +8,6 @@ Tenant-scoped via TenantBase for RLS isolation.
 from __future__ import annotations
 
 import uuid
-from typing import Dict, Optional
 
 from sqlalchemy import ForeignKey, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -22,7 +21,7 @@ class AuditLog(TenantBase):
 
     __tablename__ = "audit_logs"
 
-    user_id: Mapped[Optional[uuid.UUID]] = (
+    user_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),
@@ -33,17 +32,17 @@ class AuditLog(TenantBase):
     action: Mapped[str] = mapped_column(
         Text, nullable=False
     )
-    entity_type: Mapped[Optional[str]] = mapped_column(
+    entity_type: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
-    entity_id: Mapped[Optional[uuid.UUID]] = (
+    entity_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True), nullable=True
         )
     )
-    details: Mapped[Optional[Dict]] = mapped_column(
+    details: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True
     )
-    ip_address: Mapped[Optional[str]] = mapped_column(
+    ip_address: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )

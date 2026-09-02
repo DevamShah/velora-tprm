@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import List, Optional
 
 from sqlalchemy import (
     DateTime,
@@ -34,7 +33,7 @@ class Finding(TenantBase):
         nullable=False,
         index=True,
     )
-    assessment_id: Mapped[Optional[uuid.UUID]] = (
+    assessment_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey(
@@ -46,7 +45,7 @@ class Finding(TenantBase):
     title: Mapped[str] = mapped_column(
         String(500), nullable=False
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     severity: Mapped[str] = mapped_column(
@@ -55,27 +54,27 @@ class Finding(TenantBase):
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="open"
     )
-    affected_controls: Mapped[Optional[List[str]]] = (
+    affected_controls: Mapped[list[str] | None] = (
         mapped_column(
             ARRAY(Text), nullable=True
         )
     )
-    remediation_guidance: Mapped[Optional[str]] = (
+    remediation_guidance: Mapped[str | None] = (
         mapped_column(Text, nullable=True)
     )
-    sla_due_date: Mapped[Optional[datetime]] = (
+    sla_due_date: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
     )
-    assigned_to: Mapped[Optional[uuid.UUID]] = (
+    assigned_to: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         )
     )
-    closed_at: Mapped[Optional[datetime]] = (
+    closed_at: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
@@ -83,7 +82,7 @@ class Finding(TenantBase):
 
     # Relationships
     remediation_actions: Mapped[
-        List["RemediationAction"]
+        list[RemediationAction]
     ] = relationship(
         back_populates="finding",
         lazy="selectin",
@@ -111,16 +110,16 @@ class RemediationAction(TenantBase):
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="pending"
     )
-    effort_estimate: Mapped[Optional[str]] = (
+    effort_estimate: Mapped[str | None] = (
         mapped_column(Text, nullable=True)
     )
-    completed_at: Mapped[Optional[datetime]] = (
+    completed_at: Mapped[datetime | None] = (
         mapped_column(
             DateTime(timezone=True), nullable=True
         )
     )
 
     # Relationships
-    finding: Mapped["Finding"] = relationship(
+    finding: Mapped[Finding] = relationship(
         back_populates="remediation_actions"
     )

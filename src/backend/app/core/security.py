@@ -12,7 +12,7 @@ import hashlib
 import hmac
 import os
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -56,7 +56,7 @@ def create_access_token(
 ) -> str:
     """Issue a short-lived JWT access token."""
     payload = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(
+    expire = datetime.now(UTC) + timedelta(
         minutes=expires_minutes
     )
     payload.update({"exp": expire, "type": "access"})
@@ -71,7 +71,7 @@ def create_refresh_token(
 ) -> str:
     """Issue a longer-lived JWT refresh token."""
     payload = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(days=expires_days)
+    expire = datetime.now(UTC) + timedelta(days=expires_days)
     payload.update({"exp": expire, "type": "refresh"})
     return jwt.encode(payload, secret_key, algorithm=algorithm)
 

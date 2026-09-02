@@ -7,7 +7,7 @@ All endpoints require authentication. Permissions enforced per-route.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -60,9 +60,9 @@ async def list_findings(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-    vendor_id: Optional[uuid.UUID] = Query(None),
-    severity: Optional[str] = Query(None),
-    status_filter: Optional[str] = Query(
+    vendor_id: uuid.UUID | None = Query(None),
+    severity: str | None = Query(None),
+    status_filter: str | None = Query(
         None, alias="status"
     ),
     page: int = Query(1, ge=1),

@@ -8,11 +8,9 @@ Frameworks are global reference data (not tenant-scoped).
 from __future__ import annotations
 
 import uuid
-from typing import Dict, List, Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.core.logging import get_logger
 from app.modules.frameworks.models import (
@@ -21,7 +19,6 @@ from app.modules.frameworks.models import (
     FrameworkClause,
 )
 from app.modules.frameworks.schemas import (
-    ClauseResponse,
     ClauseTreeNode,
     FrameworkDetailResponse,
     FrameworkListResponse,
@@ -74,7 +71,7 @@ class FrameworkService:
 
     async def get_framework(
         self, framework_id: uuid.UUID
-    ) -> Optional[FrameworkDetailResponse]:
+    ) -> FrameworkDetailResponse | None:
         """Fetch framework with hierarchical clause tree."""
         query = select(Framework).where(
             Framework.id == framework_id
@@ -105,7 +102,7 @@ class FrameworkService:
 
     async def get_clause_tree(
         self, framework_id: uuid.UUID
-    ) -> List[ClauseTreeNode]:
+    ) -> list[ClauseTreeNode]:
         """Build hierarchical clause structure."""
         query = (
             select(FrameworkClause)
@@ -124,7 +121,7 @@ class FrameworkService:
 
     async def get_clause_mappings(
         self, clause_id: uuid.UUID
-    ) -> List[MappingResponse]:
+    ) -> list[MappingResponse]:
         """Get cross-framework mappings for a clause."""
         query = select(ControlMapping).where(
             (ControlMapping.source_clause_id == clause_id)
@@ -146,7 +143,7 @@ class FrameworkService:
 
     async def get_unified_controls(
         self,
-    ) -> List[UnifiedControl]:
+    ) -> list[UnifiedControl]:
         """Deduplicated controls across all frameworks."""
         query = (
             select(FrameworkClause)
@@ -162,7 +159,7 @@ class FrameworkService:
         # Build framework name lookup
         fw_query = select(Framework)
         fw_result = await self._session.execute(fw_query)
-        fw_map: Dict[uuid.UUID, str] = {
+        fw_map: dict[uuid.UUID, str] = {
             fw.id: fw.name
             for fw in fw_result.scalars().all()
         }
@@ -170,7 +167,7 @@ class FrameworkService:
         # Count mappings per clause
         mapping_counts = await self._get_mapping_counts()
 
-        controls: List[UnifiedControl] = []
+        controls: list[UnifiedControl] = []
         for clause in clauses:
             mapped = await self._get_mapped_frameworks(
                 clause.id, fw_map
@@ -198,10 +195,10 @@ class FrameworkService:
     @staticmethod
     def _build_tree(
         clauses: list,
-    ) -> List[ClauseTreeNode]:
+    ) -> list[ClauseTreeNode]:
         """Convert flat clause list into nested tree."""
-        node_map: Dict[uuid.UUID, ClauseTreeNode] = {}
-        roots: List[ClauseTreeNode] = []
+        node_map: dict[uuid.UUID, ClauseTreeNode] = {}
+        roots: list[ClauseTreeNode] = []
 
         for c in clauses:
             node = ClauseTreeNode(
@@ -261,7 +258,7 @@ class FrameworkService:
 
     async def _get_clause_with_fw(
         self, clause_id: uuid.UUID
-    ) -> Optional[tuple]:
+    ) -> tuple | None:
         """Return (clause_number, title, framework_name)."""
         query = select(FrameworkClause).where(
             FrameworkClause.id == clause_id
@@ -285,7 +282,7 @@ class FrameworkService:
 
     async def _get_mapping_counts(
         self,
-    ) -> Dict[uuid.UUID, int]:
+    ) -> dict[uuid.UUID, int]:
         """Count total mappings per clause (source + target)."""
         src_q = select(
             ControlMapping.source_clause_id,
@@ -299,7 +296,7 @@ class FrameworkService:
         src_result = await self._session.execute(src_q)
         tgt_result = await self._session.execute(tgt_q)
 
-        counts: Dict[uuid.UUID, int] = {}
+        counts: dict[uuid.UUID, int] = {}
         for row in src_result:
             counts[row[0]] = counts.get(row[0], 0) + row[1]
         for row in tgt_result:
@@ -309,8 +306,8 @@ class FrameworkService:
     async def _get_mapped_frameworks(
         self,
         clause_id: uuid.UUID,
-        fw_map: Dict[uuid.UUID, str],
-    ) -> List[str]:
+        fw_map: dict[uuid.UUID, str],
+    ) -> list[str]:
         """Get framework names this clause maps to."""
         query = select(ControlMapping).where(
             (ControlMapping.source_clause_id == clause_id)

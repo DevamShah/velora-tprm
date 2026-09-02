@@ -11,7 +11,7 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any
 
 from pydantic import (
     BaseModel,
@@ -19,7 +19,6 @@ from pydantic import (
     Field,
     field_validator,
 )
-
 
 # ── Enums ──────────────────────────────────────────────────
 
@@ -80,31 +79,31 @@ class VendorCreate(BaseModel):
     """Create a new vendor. Only name is required."""
 
     name: str = Field(min_length=1, max_length=255)
-    domain: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    status: Optional[VendorStatus] = VendorStatus.discovered
-    tier: Optional[VendorTier] = VendorTier.unclassified
-    industry: Optional[str] = Field(None, max_length=255)
-    country: Optional[str] = Field(None, max_length=100)
-    employee_count: Optional[int] = Field(None, ge=0)
-    annual_revenue: Optional[Decimal] = Field(None, ge=0)
-    data_classification: Optional[DataClassification] = None
-    business_criticality: Optional[BusinessCriticality] = None
-    contract_start_date: Optional[date] = None
-    contract_end_date: Optional[date] = None
-    contract_value: Optional[Decimal] = Field(None, ge=0)
-    primary_contact_name: Optional[str] = Field(
+    domain: str | None = Field(None, max_length=255)
+    description: str | None = None
+    status: VendorStatus | None = VendorStatus.discovered
+    tier: VendorTier | None = VendorTier.unclassified
+    industry: str | None = Field(None, max_length=255)
+    country: str | None = Field(None, max_length=100)
+    employee_count: int | None = Field(None, ge=0)
+    annual_revenue: Decimal | None = Field(None, ge=0)
+    data_classification: DataClassification | None = None
+    business_criticality: BusinessCriticality | None = None
+    contract_start_date: date | None = None
+    contract_end_date: date | None = None
+    contract_value: Decimal | None = Field(None, ge=0)
+    primary_contact_name: str | None = Field(
         None, max_length=255
     )
-    primary_contact_email: Optional[str] = Field(
+    primary_contact_email: str | None = Field(
         None, max_length=255
     )
-    tags: Optional[List[str]] = None
-    notes: Optional[str] = None
-    inherent_risk_score: Optional[float] = Field(
+    tags: list[str] | None = None
+    notes: str | None = None
+    inherent_risk_score: float | None = Field(
         None, ge=0.0, le=100.0
     )
-    residual_risk_score: Optional[float] = Field(
+    residual_risk_score: float | None = Field(
         None, ge=0.0, le=100.0
     )
 
@@ -112,32 +111,32 @@ class VendorCreate(BaseModel):
 class VendorUpdate(BaseModel):
     """Update a vendor — all fields optional."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    domain: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    status: Optional[VendorStatus] = None
-    tier: Optional[VendorTier] = None
-    industry: Optional[str] = Field(None, max_length=255)
-    country: Optional[str] = Field(None, max_length=100)
-    employee_count: Optional[int] = Field(None, ge=0)
-    annual_revenue: Optional[Decimal] = Field(None, ge=0)
-    data_classification: Optional[DataClassification] = None
-    business_criticality: Optional[BusinessCriticality] = None
-    contract_start_date: Optional[date] = None
-    contract_end_date: Optional[date] = None
-    contract_value: Optional[Decimal] = Field(None, ge=0)
-    primary_contact_name: Optional[str] = Field(
+    name: str | None = Field(None, min_length=1, max_length=255)
+    domain: str | None = Field(None, max_length=255)
+    description: str | None = None
+    status: VendorStatus | None = None
+    tier: VendorTier | None = None
+    industry: str | None = Field(None, max_length=255)
+    country: str | None = Field(None, max_length=100)
+    employee_count: int | None = Field(None, ge=0)
+    annual_revenue: Decimal | None = Field(None, ge=0)
+    data_classification: DataClassification | None = None
+    business_criticality: BusinessCriticality | None = None
+    contract_start_date: date | None = None
+    contract_end_date: date | None = None
+    contract_value: Decimal | None = Field(None, ge=0)
+    primary_contact_name: str | None = Field(
         None, max_length=255
     )
-    primary_contact_email: Optional[str] = Field(
+    primary_contact_email: str | None = Field(
         None, max_length=255
     )
-    tags: Optional[List[str]] = None
-    notes: Optional[str] = None
-    inherent_risk_score: Optional[float] = Field(
+    tags: list[str] | None = None
+    notes: str | None = None
+    inherent_risk_score: float | None = Field(
         None, ge=0.0, le=100.0
     )
-    residual_risk_score: Optional[float] = Field(
+    residual_risk_score: float | None = Field(
         None, ge=0.0, le=100.0
     )
 
@@ -153,29 +152,29 @@ class VendorResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     name: str
-    domain: Optional[str] = None
-    description: Optional[str] = None
+    domain: str | None = None
+    description: str | None = None
     status: str
     tier: str
-    industry: Optional[str] = None
-    country: Optional[str] = None
-    employee_count: Optional[int] = None
-    annual_revenue: Optional[Decimal] = None
-    data_classification: Optional[str] = None
-    business_criticality: Optional[str] = None
-    contract_start_date: Optional[date] = None
-    contract_end_date: Optional[date] = None
-    contract_value: Optional[Decimal] = None
-    primary_contact_name: Optional[str] = None
-    primary_contact_email: Optional[str] = None
-    tags: Optional[List[str]] = None
-    notes: Optional[str] = None
-    inherent_risk_score: Optional[float] = None
-    residual_risk_score: Optional[float] = None
-    external_rating_score: Optional[float] = None
-    external_rating_provider: Optional[str] = None
-    last_assessed_at: Optional[datetime] = None
-    next_assessment_due: Optional[datetime] = None
+    industry: str | None = None
+    country: str | None = None
+    employee_count: int | None = None
+    annual_revenue: Decimal | None = None
+    data_classification: str | None = None
+    business_criticality: str | None = None
+    contract_start_date: date | None = None
+    contract_end_date: date | None = None
+    contract_value: Decimal | None = None
+    primary_contact_name: str | None = None
+    primary_contact_email: str | None = None
+    tags: list[str] | None = None
+    notes: str | None = None
+    inherent_risk_score: float | None = None
+    residual_risk_score: float | None = None
+    external_rating_score: float | None = None
+    external_rating_provider: str | None = None
+    last_assessed_at: datetime | None = None
+    next_assessment_due: datetime | None = None
     contacts_count: int = 0
     created_at: datetime
     updated_at: datetime
@@ -184,7 +183,7 @@ class VendorResponse(BaseModel):
 class VendorListResponse(BaseModel):
     """Paginated vendor list."""
 
-    items: List[VendorResponse]
+    items: list[VendorResponse]
     total: int
     page: int
     page_size: int
@@ -198,9 +197,9 @@ class VendorContactCreate(BaseModel):
 
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
-    email: Optional[str] = Field(None, max_length=255)
-    phone: Optional[str] = Field(None, max_length=50)
-    role: Optional[str] = Field(None, max_length=100)
+    email: str | None = Field(None, max_length=255)
+    phone: str | None = Field(None, max_length=50)
+    role: str | None = Field(None, max_length=100)
     is_primary: bool = False
     portal_access: bool = False
 
@@ -208,17 +207,17 @@ class VendorContactCreate(BaseModel):
 class VendorContactUpdate(BaseModel):
     """Update a vendor contact — all fields optional."""
 
-    first_name: Optional[str] = Field(
+    first_name: str | None = Field(
         None, min_length=1, max_length=100
     )
-    last_name: Optional[str] = Field(
+    last_name: str | None = Field(
         None, min_length=1, max_length=100
     )
-    email: Optional[str] = Field(None, max_length=255)
-    phone: Optional[str] = Field(None, max_length=50)
-    role: Optional[str] = Field(None, max_length=100)
-    is_primary: Optional[bool] = None
-    portal_access: Optional[bool] = None
+    email: str | None = Field(None, max_length=255)
+    phone: str | None = Field(None, max_length=50)
+    role: str | None = Field(None, max_length=100)
+    is_primary: bool | None = None
+    portal_access: bool | None = None
 
 
 class VendorContactResponse(BaseModel):
@@ -230,9 +229,9 @@ class VendorContactResponse(BaseModel):
     vendor_id: uuid.UUID
     first_name: str
     last_name: str
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    role: Optional[str] = None
+    email: str | None = None
+    phone: str | None = None
+    role: str | None = None
     is_primary: bool
     portal_access: bool
     created_at: datetime
@@ -249,10 +248,10 @@ class VendorEnrichmentResponse(BaseModel):
 
     id: uuid.UUID
     source: str
-    data: Optional[Any] = None
-    confidence: Optional[float] = None
+    data: Any | None = None
+    confidence: float | None = None
     is_current: bool
-    enriched_at: Optional[datetime] = None
+    enriched_at: datetime | None = None
     created_at: datetime
 
 
@@ -264,32 +263,32 @@ class VendorDetailResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     name: str
-    domain: Optional[str] = None
-    description: Optional[str] = None
+    domain: str | None = None
+    description: str | None = None
     status: str
     tier: str
-    industry: Optional[str] = None
-    country: Optional[str] = None
-    employee_count: Optional[int] = None
-    annual_revenue: Optional[Decimal] = None
-    data_classification: Optional[str] = None
-    business_criticality: Optional[str] = None
-    contract_start_date: Optional[date] = None
-    contract_end_date: Optional[date] = None
-    contract_value: Optional[Decimal] = None
-    primary_contact_name: Optional[str] = None
-    primary_contact_email: Optional[str] = None
-    tags: Optional[List[str]] = None
-    notes: Optional[str] = None
-    inherent_risk_score: Optional[float] = None
-    residual_risk_score: Optional[float] = None
-    external_rating_score: Optional[float] = None
-    external_rating_provider: Optional[str] = None
-    last_assessed_at: Optional[datetime] = None
-    next_assessment_due: Optional[datetime] = None
-    contacts: List[VendorContactResponse] = []
-    enrichments: List[VendorEnrichmentResponse] = []
-    timeline: List[Any] = Field(default_factory=list)
+    industry: str | None = None
+    country: str | None = None
+    employee_count: int | None = None
+    annual_revenue: Decimal | None = None
+    data_classification: str | None = None
+    business_criticality: str | None = None
+    contract_start_date: date | None = None
+    contract_end_date: date | None = None
+    contract_value: Decimal | None = None
+    primary_contact_name: str | None = None
+    primary_contact_email: str | None = None
+    tags: list[str] | None = None
+    notes: str | None = None
+    inherent_risk_score: float | None = None
+    residual_risk_score: float | None = None
+    external_rating_score: float | None = None
+    external_rating_provider: str | None = None
+    last_assessed_at: datetime | None = None
+    next_assessment_due: datetime | None = None
+    contacts: list[VendorContactResponse] = []
+    enrichments: list[VendorEnrichmentResponse] = []
+    timeline: list[Any] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
@@ -310,7 +309,7 @@ class BulkImportError(BaseModel):
     """Single row import error."""
 
     row: int
-    field: Optional[str] = None
+    field: str | None = None
     message: str
 
 
@@ -319,7 +318,7 @@ class BulkImportResult(BaseModel):
 
     success_count: int = 0
     error_count: int = 0
-    errors: List[BulkImportError] = []
+    errors: list[BulkImportError] = []
 
 
 # ── Filter Parameters ──────────────────────────────────────
@@ -328,12 +327,12 @@ class BulkImportResult(BaseModel):
 class VendorFilterParams(BaseModel):
     """Query parameters for vendor list filtering."""
 
-    status: Optional[VendorStatus] = None
-    tier: Optional[VendorTier] = None
-    search: Optional[str] = Field(None, max_length=255)
-    tags: Optional[List[str]] = None
-    data_classification: Optional[DataClassification] = None
-    business_criticality: Optional[BusinessCriticality] = None
+    status: VendorStatus | None = None
+    tier: VendorTier | None = None
+    search: str | None = Field(None, max_length=255)
+    tags: list[str] | None = None
+    data_classification: DataClassification | None = None
+    business_criticality: BusinessCriticality | None = None
     sort_by: str = Field(default="created_at")
     sort_order: SortOrder = SortOrder.desc
     page: int = Field(default=1, ge=1)

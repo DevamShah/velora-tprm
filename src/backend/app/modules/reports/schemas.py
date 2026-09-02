@@ -10,10 +10,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # -- Enums ----------------------------------------------------------
 
@@ -94,7 +93,7 @@ class TopRiskVendor(BaseModel):
     id: uuid.UUID
     name: str
     tier: str
-    inherent_risk_score: Optional[float] = None
+    inherent_risk_score: float | None = None
     open_findings: int = 0
 
 
@@ -117,11 +116,11 @@ class ExecutiveDashboardData(BaseModel):
     alerts_by_priority: AlertsByPriority = Field(
         default_factory=AlertsByPriority
     )
-    avg_risk_score: Optional[float] = None
-    recent_alerts: List[RecentAlert] = Field(
+    avg_risk_score: float | None = None
+    recent_alerts: list[RecentAlert] = Field(
         default_factory=list
     )
-    top_risk_vendors: List[TopRiskVendor] = Field(
+    top_risk_vendors: list[TopRiskVendor] = Field(
         default_factory=list
     )
 
@@ -132,7 +131,7 @@ class ExecutiveDashboardData(BaseModel):
 class GenerateReportRequest(BaseModel):
     """Request to generate a new report."""
 
-    template_id: Optional[uuid.UUID] = None
+    template_id: uuid.UUID | None = None
     title: str = Field(min_length=1, max_length=500)
     format: ReportFormat = ReportFormat.pdf
 
@@ -147,12 +146,12 @@ class ReportResponse(BaseModel):
 
     id: uuid.UUID
     tenant_id: uuid.UUID
-    template_id: Optional[uuid.UUID] = None
+    template_id: uuid.UUID | None = None
     title: str
     format: str
     status: str
-    s3_key: Optional[str] = None
-    generated_by: Optional[uuid.UUID] = None
+    s3_key: str | None = None
+    generated_by: uuid.UUID | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -160,7 +159,7 @@ class ReportResponse(BaseModel):
 class ReportListResponse(BaseModel):
     """Paginated report list."""
 
-    items: List[ReportResponse]
+    items: list[ReportResponse]
     total: int
     page: int
     page_size: int
@@ -174,9 +173,9 @@ class ReportTemplateResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     template_type: str
-    sections: Optional[Dict[str, Any]] = None
+    sections: dict[str, Any] | None = None
     is_system: bool
     created_at: datetime
     updated_at: datetime
@@ -192,9 +191,9 @@ class DashboardConfigResponse(BaseModel):
 
     id: uuid.UUID
     tenant_id: uuid.UUID
-    user_id: Optional[uuid.UUID] = None
+    user_id: uuid.UUID | None = None
     dashboard_type: str
-    widget_layout: Optional[Dict[str, Any]] = None
+    widget_layout: dict[str, Any] | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -202,5 +201,5 @@ class DashboardConfigResponse(BaseModel):
 class DashboardConfigUpdate(BaseModel):
     """Update dashboard configuration."""
 
-    dashboard_type: Optional[str] = None
-    widget_layout: Optional[Dict[str, Any]] = None
+    dashboard_type: str | None = None
+    widget_layout: dict[str, Any] | None = None

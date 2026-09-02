@@ -6,15 +6,13 @@ Separated from service layer for testability and Blueprint compliance.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from app.modules.scoring.models import ScoringModel
 from app.modules.vendors.models import Vendor
 
 
 def extract_dimensions(
     model: ScoringModel,
-) -> List[Dict]:
+) -> list[dict]:
     """Extract dimension configs from model."""
     config = model.config or {}
     return config.get("dimensions", [])
@@ -22,10 +20,10 @@ def extract_dimensions(
 
 def calculate_dimensions(
     vendor: Vendor,
-    dimensions: List[Dict],
-) -> Dict[str, float]:
+    dimensions: list[dict],
+) -> dict[str, float]:
     """Calculate per-dimension scores from vendor data."""
-    scores: Dict[str, float] = {}
+    scores: dict[str, float] = {}
     for dim in dimensions:
         name = dim.get("name", "unknown")
         score = _dimension_score(vendor, name)
@@ -35,8 +33,8 @@ def calculate_dimensions(
 
 def aggregate_score(
     method: str,
-    dim_scores: Dict[str, float],
-    dimensions: List[Dict],
+    dim_scores: dict[str, float],
+    dimensions: list[dict],
 ) -> float:
     """Calculate overall score from dimension scores."""
     if not dim_scores:
@@ -105,7 +103,7 @@ def calculate_inherent(
 
 def classify_risk(
     score: float,
-    thresholds: Optional[Dict],
+    thresholds: dict | None,
 ) -> str:
     """Classify a score into a risk level."""
     t = thresholds or {
@@ -122,7 +120,7 @@ def classify_risk(
     return "low"
 
 
-def build_snapshot(vendor: Vendor) -> Dict:
+def build_snapshot(vendor: Vendor) -> dict:
     """Capture vendor state at scoring time."""
     return {
         "tier": vendor.tier,

@@ -7,8 +7,7 @@ All DB queries run inside the caller-provided async session.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -95,7 +94,7 @@ class AdminService:
             user_role = UserRole(
                 user_id=user.id,
                 role_id=data.role_id,
-                granted_at=datetime.now(timezone.utc),
+                granted_at=datetime.now(UTC),
             )
             self._session.add(user_role)
             await self._session.flush()
@@ -112,7 +111,7 @@ class AdminService:
         tenant_id: uuid.UUID,
         user_id: uuid.UUID,
         data: UserUpdate,
-    ) -> Optional[UserResponse]:
+    ) -> UserResponse | None:
         """Update user details."""
         user = await self._get_user(
             tenant_id, user_id
@@ -158,7 +157,7 @@ class AdminService:
     async def list_roles(
         self,
         tenant_id: uuid.UUID,
-    ) -> List[RoleResponse]:
+    ) -> list[RoleResponse]:
         """List all roles in a tenant."""
         result = await self._session.execute(
             select(Role).where(
@@ -198,7 +197,7 @@ class AdminService:
         tenant_id: uuid.UUID,
         role_id: uuid.UUID,
         data: RoleUpdate,
-    ) -> Optional[RoleResponse]:
+    ) -> RoleResponse | None:
         """Update an existing role."""
         result = await self._session.execute(
             select(Role).where(
@@ -240,7 +239,7 @@ class AdminService:
         user_role = UserRole(
             user_id=user_id,
             role_id=role_id,
-            granted_at=datetime.now(timezone.utc),
+            granted_at=datetime.now(UTC),
         )
         self._session.add(user_role)
         await self._session.flush()
@@ -284,11 +283,11 @@ class AdminService:
     async def query_audit_logs(
         self,
         tenant_id: uuid.UUID,
-        user_id: Optional[uuid.UUID] = None,
-        action: Optional[str] = None,
-        entity_type: Optional[str] = None,
-        date_from: Optional[datetime] = None,
-        date_to: Optional[datetime] = None,
+        user_id: uuid.UUID | None = None,
+        action: str | None = None,
+        entity_type: str | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> AuditLogListResponse:
@@ -332,7 +331,7 @@ class AdminService:
         self,
         tenant_id: uuid.UUID,
         filters: AuditLogExportRequest,
-    ) -> List[AuditLogResponse]:
+    ) -> list[AuditLogResponse]:
         """Export audit logs matching filters (no pagination)."""
         base = select(AuditLog).where(
             AuditLog.tenant_id == tenant_id
@@ -361,12 +360,12 @@ class AdminService:
     async def log_action(
         self,
         tenant_id: uuid.UUID,
-        user_id: Optional[uuid.UUID],
+        user_id: uuid.UUID | None,
         action: str,
-        entity_type: Optional[str] = None,
-        entity_id: Optional[uuid.UUID] = None,
-        details: Optional[Dict] = None,
-        ip_address: Optional[str] = None,
+        entity_type: str | None = None,
+        entity_id: uuid.UUID | None = None,
+        details: dict | None = None,
+        ip_address: str | None = None,
     ) -> AuditLogResponse:
         """Create an audit log entry."""
         log = AuditLog(
@@ -388,7 +387,7 @@ class AdminService:
         self,
         tenant_id: uuid.UUID,
         user_id: uuid.UUID,
-    ) -> Optional[User]:
+    ) -> User | None:
         """Fetch a user by tenant and ID."""
         result = await self._session.execute(
             select(User)
@@ -412,7 +411,7 @@ class AdminService:
         except Exception:
             email = None
 
-        role_names: List[str] = []
+        role_names: list[str] = []
         try:
             for ur in user.user_roles or []:
                 if ur.role and ur.role.name:
@@ -469,11 +468,11 @@ class AdminService:
     @staticmethod
     def _apply_audit_filters(
         query,
-        user_id: Optional[uuid.UUID],
-        action: Optional[str],
-        entity_type: Optional[str],
-        date_from: Optional[datetime],
-        date_to: Optional[datetime],
+        user_id: uuid.UUID | None,
+        action: str | None,
+        entity_type: str | None,
+        date_from: datetime | None,
+        date_to: datetime | None,
     ):
         """Apply WHERE clauses for audit log filters."""
         if user_id:

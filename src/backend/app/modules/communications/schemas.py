@@ -10,10 +10,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # -- Enums ----------------------------------------------------------
 
@@ -52,16 +51,16 @@ class NotificationResponse(BaseModel):
     message: str
     channel: str
     read: bool
-    read_at: Optional[datetime] = None
-    entity_type: Optional[str] = None
-    entity_id: Optional[uuid.UUID] = None
+    read_at: datetime | None = None
+    entity_type: str | None = None
+    entity_id: uuid.UUID | None = None
     created_at: datetime
 
 
 class NotificationListResponse(BaseModel):
     """Paginated notification list."""
 
-    items: List[NotificationResponse]
+    items: list[NotificationResponse]
     total: int
     page: int
     page_size: int
@@ -77,9 +76,9 @@ class PreferenceResponse(BaseModel):
 
     id: uuid.UUID
     category: str
-    channel_config: Optional[Dict[str, Any]] = None
-    quiet_hours_start: Optional[str] = None
-    quiet_hours_end: Optional[str] = None
+    channel_config: dict[str, Any] | None = None
+    quiet_hours_start: str | None = None
+    quiet_hours_end: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -88,11 +87,11 @@ class PreferenceUpdate(BaseModel):
     """Update notification preferences."""
 
     category: str = Field(min_length=1, max_length=100)
-    channel_config: Optional[Dict[str, Any]] = None
-    quiet_hours_start: Optional[str] = Field(
+    channel_config: dict[str, Any] | None = None
+    quiet_hours_start: str | None = Field(
         None, max_length=5
     )
-    quiet_hours_end: Optional[str] = Field(
+    quiet_hours_end: str | None = Field(
         None, max_length=5
     )
 
@@ -106,19 +105,19 @@ class EmailTemplateCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     subject_template: str = Field(min_length=1)
     body_template: str = Field(min_length=1)
-    variables: Optional[Dict[str, Any]] = None
+    variables: dict[str, Any] | None = None
     is_system: bool = False
 
 
 class EmailTemplateUpdate(BaseModel):
     """Update an email template."""
 
-    name: Optional[str] = Field(
+    name: str | None = Field(
         None, min_length=1, max_length=255
     )
-    subject_template: Optional[str] = None
-    body_template: Optional[str] = None
-    variables: Optional[Dict[str, Any]] = None
+    subject_template: str | None = None
+    body_template: str | None = None
+    variables: dict[str, Any] | None = None
 
 
 class EmailTemplateResponse(BaseModel):
@@ -131,7 +130,7 @@ class EmailTemplateResponse(BaseModel):
     name: str
     subject_template: str
     body_template: str
-    variables: Optional[Dict[str, Any]] = None
+    variables: dict[str, Any] | None = None
     is_system: bool
     created_at: datetime
     updated_at: datetime
@@ -149,17 +148,17 @@ class CommLogResponse(BaseModel):
     tenant_id: uuid.UUID
     channel: str
     recipient: str
-    subject: Optional[str] = None
+    subject: str | None = None
     status: str
-    sent_at: Optional[datetime] = None
-    error_message: Optional[str] = None
+    sent_at: datetime | None = None
+    error_message: str | None = None
     created_at: datetime
 
 
 class CommLogListResponse(BaseModel):
     """Paginated communication log list."""
 
-    items: List[CommLogResponse]
+    items: list[CommLogResponse]
     total: int
     page: int
     page_size: int

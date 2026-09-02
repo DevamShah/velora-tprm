@@ -10,7 +10,6 @@ from __future__ import annotations
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import List
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +23,7 @@ from app.modules.vendors.models import Vendor
 logger = get_logger(__name__)
 
 
-VENDOR_SEEDS: List[dict] = [
+VENDOR_SEEDS: list[dict] = [
     # ── Critical Tier (3) ──────────────────────────────
     {
         "name": "Amazon Web Services",

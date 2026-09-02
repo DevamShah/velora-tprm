@@ -7,7 +7,7 @@ All endpoints require authentication and admin permissions.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List, Optional
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -225,7 +225,7 @@ async def remove_role(
 
 @router.get(
     "/roles",
-    response_model=List[RoleResponse],
+    response_model=list[RoleResponse],
     dependencies=[
         Depends(require_permission("admin.roles"))
     ],
@@ -235,7 +235,7 @@ async def list_roles(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[RoleResponse]:
+) -> list[RoleResponse]:
     """List all roles in the tenant."""
     service = AdminService(session)
     return await service.list_roles(
@@ -314,9 +314,9 @@ async def query_audit_logs(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-    user_id: Optional[uuid.UUID] = Query(None),
-    action: Optional[str] = Query(None),
-    entity_type: Optional[str] = Query(None),
+    user_id: uuid.UUID | None = Query(None),
+    action: str | None = Query(None),
+    entity_type: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> AuditLogListResponse:
@@ -337,7 +337,7 @@ async def query_audit_logs(
 
 @router.post(
     "/audit-logs/export",
-    response_model=List[AuditLogResponse],
+    response_model=list[AuditLogResponse],
     dependencies=[
         Depends(require_permission("admin.audit"))
     ],
@@ -348,7 +348,7 @@ async def export_audit_logs(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[AuditLogResponse]:
+) -> list[AuditLogResponse]:
     """Export audit logs for CSV generation."""
     service = AdminService(session)
     return await service.export_audit_logs(

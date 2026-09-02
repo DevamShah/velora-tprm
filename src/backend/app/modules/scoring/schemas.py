@@ -10,10 +10,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # -- Enums ----------------------------------------------------------
 
@@ -33,39 +32,39 @@ class DimensionWeight(BaseModel):
 
     name: str
     weight: float = Field(ge=0.0, le=1.0)
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class ScoringModelCreate(BaseModel):
     """Create a new scoring model."""
 
     name: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     method: ScoringMethod = ScoringMethod.weighted_average
     is_default: bool = False
-    dimensions: List[DimensionWeight] = Field(
+    dimensions: list[DimensionWeight] = Field(
         min_length=1
     )
-    inherent_risk_factors: Optional[Dict[str, Any]] = (
+    inherent_risk_factors: dict[str, Any] | None = (
         None
     )
-    risk_thresholds: Optional[Dict[str, float]] = None
+    risk_thresholds: dict[str, float] | None = None
 
 
 class ScoringModelUpdate(BaseModel):
     """Update a scoring model — all fields optional."""
 
-    name: Optional[str] = Field(
+    name: str | None = Field(
         None, min_length=1, max_length=255
     )
-    description: Optional[str] = None
-    method: Optional[ScoringMethod] = None
-    is_default: Optional[bool] = None
-    dimensions: Optional[List[DimensionWeight]] = None
-    inherent_risk_factors: Optional[Dict[str, Any]] = (
+    description: str | None = None
+    method: ScoringMethod | None = None
+    is_default: bool | None = None
+    dimensions: list[DimensionWeight] | None = None
+    inherent_risk_factors: dict[str, Any] | None = (
         None
     )
-    risk_thresholds: Optional[Dict[str, float]] = None
+    risk_thresholds: dict[str, float] | None = None
 
 
 class ScoringModelResponse(BaseModel):
@@ -76,14 +75,14 @@ class ScoringModelResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     method: str
     is_default: bool
-    config: Optional[Dict[str, Any]] = None
-    inherent_risk_factors: Optional[Dict[str, Any]] = (
+    config: dict[str, Any] | None = None
+    inherent_risk_factors: dict[str, Any] | None = (
         None
     )
-    risk_thresholds: Optional[Dict[str, Any]] = None
+    risk_thresholds: dict[str, Any] | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -98,12 +97,12 @@ class ScoreBreakdown(BaseModel):
 
     id: uuid.UUID
     vendor_id: uuid.UUID
-    scoring_model_id: Optional[uuid.UUID] = None
+    scoring_model_id: uuid.UUID | None = None
     overall_score: float
-    dimension_scores: Optional[Dict[str, Any]] = None
-    inherent_score: Optional[float] = None
-    residual_score: Optional[float] = None
-    external_score: Optional[float] = None
+    dimension_scores: dict[str, Any] | None = None
+    inherent_score: float | None = None
+    residual_score: float | None = None
+    external_score: float | None = None
     risk_level: str = "medium"
     calculated_at: datetime
     created_at: datetime
@@ -116,7 +115,7 @@ class ScoreHistoryItem(BaseModel):
 
     id: uuid.UUID
     overall_score: float
-    dimension_scores: Optional[Dict[str, Any]] = None
+    dimension_scores: dict[str, Any] | None = None
     recorded_at: datetime
 
 
@@ -124,21 +123,21 @@ class ScoreHistoryResponse(BaseModel):
     """Score history for a vendor."""
 
     vendor_id: uuid.UUID
-    items: List[ScoreHistoryItem]
+    items: list[ScoreHistoryItem]
     total: int
 
 
 class CalculateRequest(BaseModel):
     """Optional parameters for score calculation."""
 
-    scoring_model_id: Optional[uuid.UUID] = None
+    scoring_model_id: uuid.UUID | None = None
 
 
 class BulkCalculateRequest(BaseModel):
     """Bulk score calculation for multiple vendors."""
 
-    vendor_ids: List[uuid.UUID] = Field(min_length=1)
-    scoring_model_id: Optional[uuid.UUID] = None
+    vendor_ids: list[uuid.UUID] = Field(min_length=1)
+    scoring_model_id: uuid.UUID | None = None
 
 
 class BulkCalculateResponse(BaseModel):
@@ -146,10 +145,10 @@ class BulkCalculateResponse(BaseModel):
 
     calculated: int = 0
     failed: int = 0
-    results: List[ScoreBreakdown] = Field(
+    results: list[ScoreBreakdown] = Field(
         default_factory=list
     )
-    errors: List[Dict[str, str]] = Field(
+    errors: list[dict[str, str]] = Field(
         default_factory=list
     )
 
@@ -171,10 +170,10 @@ class PortfolioSummary(BaseModel):
 
     total_vendors: int = 0
     scored_vendors: int = 0
-    average_score: Optional[float] = None
+    average_score: float | None = None
     tier_distribution: TierDistribution = Field(
         default_factory=TierDistribution
     )
-    risk_level_counts: Dict[str, int] = Field(
+    risk_level_counts: dict[str, int] = Field(
         default_factory=dict
     )

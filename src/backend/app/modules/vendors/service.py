@@ -10,9 +10,8 @@ from __future__ import annotations
 import csv
 import io
 import uuid
-from datetime import datetime, timezone
-from decimal import Decimal, InvalidOperation
-from typing import List, Optional
+from datetime import UTC, datetime
+from decimal import Decimal
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +23,6 @@ from app.core.security import FieldEncryptor
 from app.modules.vendors.models import (
     Vendor,
     VendorContact,
-    VendorEnrichment,
 )
 from app.modules.vendors.schemas import (
     BulkImportError,
@@ -137,7 +135,7 @@ class VendorService:
         self,
         tenant_id: uuid.UUID,
         vendor_id: uuid.UUID,
-    ) -> Optional[VendorDetailResponse]:
+    ) -> VendorDetailResponse | None:
         """Fetch a vendor with contacts and enrichment data."""
         query = (
             select(Vendor)
@@ -164,7 +162,7 @@ class VendorService:
         tenant_id: uuid.UUID,
         vendor_id: uuid.UUID,
         data: VendorUpdate,
-    ) -> Optional[VendorResponse]:
+    ) -> VendorResponse | None:
         """Update an existing vendor. Returns None if not found."""
         vendor = await self._get_vendor_or_none(
             tenant_id, vendor_id
@@ -203,7 +201,7 @@ class VendorService:
         if vendor is None:
             return False
 
-        vendor.deleted_at = datetime.now(timezone.utc)
+        vendor.deleted_at = datetime.now(UTC)
         await self._session.flush()
         logger.info("vendor_deleted", vendor_id=str(vendor_id))
         return True
@@ -216,7 +214,7 @@ class VendorService:
         csv_data: str,
     ) -> BulkImportResult:
         """Parse CSV rows and create vendors. Track errors per row."""
-        errors: List[BulkImportError] = []
+        errors: list[BulkImportError] = []
         success_count = 0
 
         try:
@@ -260,7 +258,7 @@ class VendorService:
         self,
         tenant_id: uuid.UUID,
         vendor_id: uuid.UUID,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Calculate and persist tier based on vendor attributes."""
         vendor = await self._get_vendor_or_none(
             tenant_id, vendor_id
@@ -285,7 +283,7 @@ class VendorService:
         tenant_id: uuid.UUID,
         vendor_id: uuid.UUID,
         data: VendorContactCreate,
-    ) -> Optional[VendorContactResponse]:
+    ) -> VendorContactResponse | None:
         """Add a contact to a vendor."""
         vendor = await self._get_vendor_or_none(
             tenant_id, vendor_id
@@ -315,7 +313,7 @@ class VendorService:
         self,
         tenant_id: uuid.UUID,
         vendor_id: uuid.UUID,
-    ) -> Optional[List[VendorContactResponse]]:
+    ) -> list[VendorContactResponse] | None:
         """List contacts for a vendor. None if vendor not found."""
         vendor = await self._get_vendor_or_none(
             tenant_id, vendor_id
@@ -338,7 +336,7 @@ class VendorService:
         vendor_id: uuid.UUID,
         contact_id: uuid.UUID,
         data: VendorContactUpdate,
-    ) -> Optional[VendorContactResponse]:
+    ) -> VendorContactResponse | None:
         """Update a vendor contact. None if not found."""
         result = await self._session.execute(
             select(VendorContact).where(
@@ -370,7 +368,7 @@ class VendorService:
         self,
         tenant_id: uuid.UUID,
         vendor_id: uuid.UUID,
-    ) -> Optional[Vendor]:
+    ) -> Vendor | None:
         """Fetch a non-deleted vendor or return None."""
         result = await self._session.execute(
             select(Vendor).where(
@@ -384,7 +382,7 @@ class VendorService:
     def _set_encrypted_email(
         self,
         vendor: Vendor,
-        email: Optional[str],
+        email: str | None,
     ) -> None:
         """Encrypt primary contact email and store hash."""
         if email:
@@ -401,8 +399,8 @@ class VendorService:
     def _set_contact_pii(
         self,
         contact: VendorContact,
-        email: Optional[str],
-        phone: Optional[str],
+        email: str | None,
+        phone: str | None,
     ) -> None:
         """Encrypt contact email and phone fields."""
         if email is not None:

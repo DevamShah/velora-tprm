@@ -7,7 +7,7 @@ All endpoints require authentication. Permissions enforced per-route.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List, Optional
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -125,14 +125,14 @@ async def mark_all_notifications_read(
 
 @router.get(
     "/preferences",
-    response_model=List[PreferenceResponse],
+    response_model=list[PreferenceResponse],
 )
 async def get_preferences(
     session: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[PreferenceResponse]:
+) -> list[PreferenceResponse]:
     """Fetch notification preferences for current user."""
     service = CommunicationsService(session)
     return await service.get_preferences(
@@ -169,7 +169,7 @@ async def update_preferences(
 
 @router.get(
     "/templates",
-    response_model=List[EmailTemplateResponse],
+    response_model=list[EmailTemplateResponse],
     dependencies=[
         Depends(require_permission("admin.settings"))
     ],
@@ -179,7 +179,7 @@ async def list_email_templates(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[EmailTemplateResponse]:
+) -> list[EmailTemplateResponse]:
     """List all email templates."""
     service = CommunicationsService(session)
     return await service.list_email_templates(
@@ -258,8 +258,8 @@ async def get_communication_logs(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-    channel: Optional[str] = Query(None),
-    status_filter: Optional[str] = Query(
+    channel: str | None = Query(None),
+    status_filter: str | None = Query(
         None, alias="status"
     ),
     page: int = Query(1, ge=1),

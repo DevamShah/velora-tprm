@@ -9,7 +9,7 @@ passwords. Safe to run multiple times.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -277,7 +277,7 @@ async def _seed_users(
     encryptor: FieldEncryptor,
 ) -> None:
     """Create test users with encrypted emails and role grants."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for user_def in TEST_USERS:
         email_hash = encryptor.hmac_hash(user_def["email"])

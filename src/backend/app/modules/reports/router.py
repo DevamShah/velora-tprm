@@ -7,7 +7,7 @@ All endpoints require authentication. Permissions enforced per-route.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, List, Optional
+from typing import Annotated, Optional
 
 from fastapi import (
     APIRouter,
@@ -154,7 +154,7 @@ async def get_report(
 
 @router.get(
     "/templates",
-    response_model=List[ReportTemplateResponse],
+    response_model=list[ReportTemplateResponse],
     dependencies=[
         Depends(require_permission("reports.read"))
     ],
@@ -164,7 +164,7 @@ async def list_templates(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> List[ReportTemplateResponse]:
+) -> list[ReportTemplateResponse]:
     """List all report templates."""
     service = ReportsService(session)
     return await service.list_templates(
@@ -187,7 +187,7 @@ async def get_dashboard_config(
     current_user: Annotated[
         dict, Depends(get_current_user)
     ],
-) -> Optional[DashboardConfigResponse]:
+) -> DashboardConfigResponse | None:
     """Fetch current user's dashboard configuration."""
     service = ReportsService(session)
     return await service.get_dashboard_config(

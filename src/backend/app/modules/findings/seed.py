@@ -8,20 +8,19 @@ Idempotent: safe to run multiple times.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import List
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+# Import all models to resolve FK references
+import app.modules.assessments.models
+import app.modules.evidence.models
+import app.modules.frameworks.models
+import app.modules.monitoring.models
+import app.modules.vendors.models  # noqa: F401
 from app.core.logging import get_logger
 from app.core.seed import DEMO_TENANT_ID
-# Import all models to resolve FK references
-import app.modules.assessments.models  # noqa: F401
-import app.modules.vendors.models  # noqa: F401
-import app.modules.evidence.models  # noqa: F401
-import app.modules.monitoring.models  # noqa: F401
-import app.modules.frameworks.models  # noqa: F401
 from app.modules.admin.models import AuditLog
 from app.modules.auth.models import User
 from app.modules.communications.models import (
@@ -30,7 +29,6 @@ from app.modules.communications.models import (
 )
 from app.modules.findings.models import (
     Finding,
-    RemediationAction,
 )
 from app.modules.vendors.models import Vendor
 
@@ -54,7 +52,7 @@ async def _get_admin_user_id(
 async def _get_vendor_ids(
     session: AsyncSession,
     tenant_id: uuid.UUID,
-) -> List[uuid.UUID]:
+) -> list[uuid.UUID]:
     """Fetch up to 5 seeded vendor IDs."""
     result = await session.execute(
         select(Vendor.id)
@@ -81,7 +79,7 @@ async def _seed_notifications(
     if (count_result.scalar() or 0) > 0:
         return 0
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     notifs = [
         {
             "title": "Critical finding detected",
@@ -251,7 +249,7 @@ async def _seed_email_templates(
 async def _seed_findings(
     session: AsyncSession,
     tenant_id: uuid.UUID,
-    vendor_ids: List[uuid.UUID],
+    vendor_ids: list[uuid.UUID],
 ) -> int:
     """Seed 8 demo findings across vendors."""
     count_result = await session.execute(
@@ -265,7 +263,7 @@ async def _seed_findings(
     if len(vendor_ids) < 3:
         return 0
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     findings_data = [
         {
             "vendor_id": vendor_ids[0],
@@ -414,7 +412,7 @@ async def _seed_audit_logs(
     if (count_result.scalar() or 0) > 0:
         return 0
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     entries = [
         {
             "action": "user.login",

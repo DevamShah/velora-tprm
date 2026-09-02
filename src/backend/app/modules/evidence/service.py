@@ -7,8 +7,7 @@ All DB queries run inside the caller-provided async session.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -87,7 +86,7 @@ class EvidenceService:
         self,
         tenant_id: uuid.UUID,
         evidence_id: uuid.UUID,
-    ) -> Optional[EvidenceDetailResponse]:
+    ) -> EvidenceDetailResponse | None:
         """Fetch evidence with extractions and mappings."""
         query = (
             select(Evidence)
@@ -156,7 +155,7 @@ class EvidenceService:
         self,
         tenant_id: uuid.UUID,
         evidence_id: uuid.UUID,
-    ) -> Optional[EvidenceDetailResponse]:
+    ) -> EvidenceDetailResponse | None:
         """Mock AI parsing — generate sample extractions."""
         ev = await self._get_or_none(
             tenant_id, evidence_id
@@ -199,7 +198,7 @@ class EvidenceService:
         self,
         tenant_id: uuid.UUID,
         evidence_id: uuid.UUID,
-    ) -> Optional[List[EvidenceControlMappingResponse]]:
+    ) -> list[EvidenceControlMappingResponse] | None:
         """Return control mappings for an evidence item."""
         ev = await self._get_or_none(
             tenant_id, evidence_id
@@ -227,7 +226,7 @@ class EvidenceService:
         mapping_id: uuid.UUID,
         verified: bool,
         verified_by: uuid.UUID,
-    ) -> Optional[EvidenceControlMappingResponse]:
+    ) -> EvidenceControlMappingResponse | None:
         """Verify or reject a control mapping."""
         result = await self._session.execute(
             select(EvidenceControlMapping).where(
@@ -268,7 +267,7 @@ class EvidenceService:
         if ev is None:
             return False
 
-        ev.deleted_at = datetime.now(timezone.utc)
+        ev.deleted_at = datetime.now(UTC)
         await self._session.flush()
         logger.info(
             "evidence_deleted",
@@ -282,7 +281,7 @@ class EvidenceService:
         self,
         tenant_id: uuid.UUID,
         evidence_id: uuid.UUID,
-    ) -> Optional[Evidence]:
+    ) -> Evidence | None:
         """Fetch non-deleted evidence or return None."""
         result = await self._session.execute(
             select(Evidence).where(
@@ -316,7 +315,7 @@ class EvidenceService:
         tenant_id: uuid.UUID,
         evidence_id: uuid.UUID,
         doc_type: str,
-    ) -> List[EvidenceExtraction]:
+    ) -> list[EvidenceExtraction]:
         """Generate mock extractions based on doc type."""
         field_sets = {
             "soc2": [

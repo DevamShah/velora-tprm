@@ -7,8 +7,7 @@ All DB queries run inside the caller-provided async session.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -93,7 +92,7 @@ class MonitoringService:
         self,
         tenant_id: uuid.UUID,
         alert_id: uuid.UUID,
-    ) -> Optional[AlertResponse]:
+    ) -> AlertResponse | None:
         """Fetch a single alert detail."""
         result = await self._session.execute(
             select(Alert).where(
@@ -113,7 +112,7 @@ class MonitoringService:
         tenant_id: uuid.UUID,
         alert_id: uuid.UUID,
         user_id: uuid.UUID,
-    ) -> Optional[AlertResponse]:
+    ) -> AlertResponse | None:
         """Mark an alert as acknowledged."""
         alert = await self._get_alert_or_none(
             tenant_id, alert_id
@@ -124,7 +123,7 @@ class MonitoringService:
         alert.status = "acknowledged"
         alert.acknowledged_by = user_id
         alert.acknowledged_at = datetime.now(
-            timezone.utc
+            UTC
         )
         await self._session.flush()
         logger.info(
@@ -140,8 +139,8 @@ class MonitoringService:
         tenant_id: uuid.UUID,
         alert_id: uuid.UUID,
         user_id: uuid.UUID,
-        notes: Optional[str],
-    ) -> Optional[AlertResponse]:
+        notes: str | None,
+    ) -> AlertResponse | None:
         """Mark an alert as resolved."""
         alert = await self._get_alert_or_none(
             tenant_id, alert_id
@@ -151,7 +150,7 @@ class MonitoringService:
 
         alert.status = "resolved"
         alert.resolved_by = user_id
-        alert.resolved_at = datetime.now(timezone.utc)
+        alert.resolved_at = datetime.now(UTC)
         alert.resolution_notes = notes
         await self._session.flush()
         logger.info(
@@ -166,7 +165,7 @@ class MonitoringService:
         self,
         tenant_id: uuid.UUID,
         alert_id: uuid.UUID,
-    ) -> Optional[AlertResponse]:
+    ) -> AlertResponse | None:
         """Suppress an alert."""
         alert = await self._get_alert_or_none(
             tenant_id, alert_id
@@ -213,7 +212,7 @@ class MonitoringService:
     async def list_alert_rules(
         self,
         tenant_id: uuid.UUID,
-    ) -> List[AlertRuleResponse]:
+    ) -> list[AlertRuleResponse]:
         """List all alert rules for a tenant."""
         result = await self._session.execute(
             select(AlertRule).where(
@@ -252,7 +251,7 @@ class MonitoringService:
         tenant_id: uuid.UUID,
         rule_id: uuid.UUID,
         data: AlertRuleUpdate,
-    ) -> Optional[AlertRuleResponse]:
+    ) -> AlertRuleResponse | None:
         """Update an existing alert rule."""
         result = await self._session.execute(
             select(AlertRule).where(
@@ -322,7 +321,7 @@ class MonitoringService:
         self,
         tenant_id: uuid.UUID,
         alert_id: uuid.UUID,
-    ) -> Optional[Alert]:
+    ) -> Alert | None:
         """Fetch alert or return None."""
         result = await self._session.execute(
             select(Alert).where(

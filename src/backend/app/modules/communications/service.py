@@ -7,8 +7,7 @@ All DB queries run inside the caller-provided async session.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -87,7 +86,7 @@ class CommunicationsService:
         self,
         tenant_id: uuid.UUID,
         notification_id: uuid.UUID,
-    ) -> Optional[NotificationResponse]:
+    ) -> NotificationResponse | None:
         """Mark a single notification as read."""
         result = await self._session.execute(
             select(Notification).where(
@@ -100,7 +99,7 @@ class CommunicationsService:
             return None
 
         notif.read = True
-        notif.read_at = datetime.now(timezone.utc)
+        notif.read_at = datetime.now(UTC)
         await self._session.flush()
         return self._to_notification(notif)
 
@@ -120,7 +119,7 @@ class CommunicationsService:
             )
         )
         notifs = result.scalars().all()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for n in notifs:
             n.read = True
             n.read_at = now
@@ -133,7 +132,7 @@ class CommunicationsService:
         self,
         tenant_id: uuid.UUID,
         user_id: uuid.UUID,
-    ) -> List[PreferenceResponse]:
+    ) -> list[PreferenceResponse]:
         """Fetch notification preferences for a user."""
         result = await self._session.execute(
             select(NotificationPreference).where(
@@ -192,7 +191,7 @@ class CommunicationsService:
     async def list_email_templates(
         self,
         tenant_id: uuid.UUID,
-    ) -> List[EmailTemplateResponse]:
+    ) -> list[EmailTemplateResponse]:
         """List all email templates for tenant."""
         result = await self._session.execute(
             select(EmailTemplate).where(
@@ -232,7 +231,7 @@ class CommunicationsService:
         tenant_id: uuid.UUID,
         template_id: uuid.UUID,
         data: EmailTemplateUpdate,
-    ) -> Optional[EmailTemplateResponse]:
+    ) -> EmailTemplateResponse | None:
         """Update an existing email template."""
         result = await self._session.execute(
             select(EmailTemplate).where(
@@ -266,8 +265,8 @@ class CommunicationsService:
         title: str,
         message: str,
         channel: str = "in_app",
-        entity_type: Optional[str] = None,
-        entity_id: Optional[uuid.UUID] = None,
+        entity_type: str | None = None,
+        entity_id: uuid.UUID | None = None,
     ) -> NotificationResponse:
         """Create a notification record."""
         notif = Notification(
@@ -292,8 +291,8 @@ class CommunicationsService:
     async def get_communication_logs(
         self,
         tenant_id: uuid.UUID,
-        channel: Optional[str] = None,
-        status_filter: Optional[str] = None,
+        channel: str | None = None,
+        status_filter: str | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> CommLogListResponse:

@@ -8,12 +8,9 @@ All tenant-scoped via TenantBase for RLS isolation.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
-from typing import Dict, Optional
 
 from sqlalchemy import (
     Boolean,
-    DateTime,
     ForeignKey,
     String,
     Text,
@@ -29,7 +26,7 @@ class DashboardConfig(TenantBase):
 
     __tablename__ = "dashboard_configs"
 
-    user_id: Mapped[Optional[uuid.UUID]] = (
+    user_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),
@@ -40,7 +37,7 @@ class DashboardConfig(TenantBase):
     dashboard_type: Mapped[str] = mapped_column(
         Text, nullable=False, default="executive"
     )
-    widget_layout: Mapped[Optional[Dict]] = (
+    widget_layout: Mapped[dict | None] = (
         mapped_column(JSONB, nullable=True)
     )
 
@@ -53,13 +50,13 @@ class ReportTemplate(TenantBase):
     name: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
-    description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(
         Text, nullable=True
     )
     template_type: Mapped[str] = mapped_column(
         Text, nullable=False
     )
-    sections: Mapped[Optional[Dict]] = mapped_column(
+    sections: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True
     )
     is_system: Mapped[bool] = mapped_column(
@@ -72,7 +69,7 @@ class GeneratedReport(TenantBase):
 
     __tablename__ = "generated_reports"
 
-    template_id: Mapped[Optional[uuid.UUID]] = (
+    template_id: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey(
@@ -91,10 +88,10 @@ class GeneratedReport(TenantBase):
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="pending"
     )
-    s3_key: Mapped[Optional[str]] = mapped_column(
+    s3_key: Mapped[str | None] = mapped_column(
         String(1000), nullable=True
     )
-    generated_by: Mapped[Optional[uuid.UUID]] = (
+    generated_by: Mapped[uuid.UUID | None] = (
         mapped_column(
             UUID(as_uuid=True),
             ForeignKey("users.id", ondelete="SET NULL"),
