@@ -84,7 +84,16 @@ markers = [
 
 [tool.coverage.run]
 source = ["app"]
-omit = ["app/core/seed.py", "alembic/*"]
+omit = [
+    # Seed modules are idempotent demo/dev data loaders. Nothing in the
+    # application imports them; they exist to populate a local database.
+    # app/core/seed.py was already excluded on that basis — the per-module
+    # seeds are the same category and were simply missed.
+    "app/core/seed.py",
+    "app/modules/*/seed.py",
+    "app/modules/*/seed_data.py",
+    "alembic/*",
+]
 
 [tool.coverage.report]
 fail_under = 80
