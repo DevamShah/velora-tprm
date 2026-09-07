@@ -1,10 +1,10 @@
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 WORKDIR /app
 COPY packages/velora-common /app/packages/velora-common
 COPY services/communication /app/services/communication
 RUN pip install --no-cache-dir /app/packages/velora-common /app/services/communication
 
-FROM python:3.12-slim
+FROM python:3.14-slim
 WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
